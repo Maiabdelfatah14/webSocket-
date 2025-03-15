@@ -4,7 +4,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "my_rg" {
   name     = "myResourceGroup"
-  location = var.region  
+  location = "west europe"  
 }
 
 
