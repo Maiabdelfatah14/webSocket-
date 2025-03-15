@@ -2,20 +2,25 @@ provider "azurerm" {
   features {}
 }
 
+resource "azurerm_resource_group" "my_rg" {
+  name     = "myResourceGroup"
+  location = "East US"
+}
+
 resource "azurerm_container_registry" "my_acr" {
-  name                = "myregistry"
-  location            = "East US"
+  name                = "myacr"
   resource_group_name = azurerm_resource_group.my_rg.name
+  location            = azurerm_resource_group.my_rg.location
   sku                 = "Basic"
 }
 
 resource "azurerm_kubernetes_cluster" "aks_cluster" {
   name                = "myakscluster"
-  location            = "East US"
+  location            = azurerm_resource_group.my_rg.location
   resource_group_name = azurerm_resource_group.my_rg.name
   default_node_pool {
     name       = "default"
-    node_count = 1
+    node_count = 2
     vm_size    = "Standard_DS2_v2"
   }
   identity {
