@@ -1,1 +1,4 @@
-
+apiVersion: v2
+name: my-websocket-app
+description: A FastAPI WebSocket app
+version: 0.1.0
