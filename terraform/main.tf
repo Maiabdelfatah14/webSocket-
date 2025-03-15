@@ -4,7 +4,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "my_rg" {
   name     = "myResourceGroup"
-  location = "East US"
+  location = "west europe"
 }
 
 resource "azurerm_container_registry" "my_acr" {
