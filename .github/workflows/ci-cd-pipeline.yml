@@ -41,10 +41,12 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.0.0
+            terraform_version: latest
+
 
       - name: Terraform init and apply
         working-directory: terraform
         run: |
-          terraform init
-          terraform apply -auto-approve
+            terraform init
+            terraform apply -auto-approve -var "Subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+
