@@ -48,18 +48,3 @@ resource "azurerm_container_registry" "my_acr" {
   }
 }
 
-resource "azurerm_websocker_app" "example" {
-  name                = var.azurer_websocker_app
-  resource_group_name = var.app_resource_group
-  location            = var.app_location
-  service_plan_id     = var.app_azurerm_service_plan
-  https_only          = var.app_https_only
-
-  site_config {
-    application_stack {
-      docker_image_name   = var.app_docker_image
-      docker_registry_url = var.app_docker_registry_url
-    }
-  }
-}
-
