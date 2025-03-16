@@ -73,12 +73,10 @@ jobs:
       - name: Install Helm
         run: |
          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-        
+
       - name: Deploy using Helm
         run: |
-            helm upgrade --install websocket-app ./websocket-chart \
-              --namespace default \
-              --set image.repository=myacrHELM.azurecr.io/fastapi-websocket \
-              --set image.tag=latest
-
-
+          helm upgrade --install websocket-app ./helm \
+            --namespace default \
+            --set image.repository=myacrHELM.azurecr.io/fastapi-websocket \
+            --set image.tag=latest
