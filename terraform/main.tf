@@ -5,13 +5,13 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "my_rg" {
-  name     = "myResourceGroup-1"
+  name     = "myResourceGroup-2"
   location = "west europe"  
 }
 
 
 resource "azurerm_container_registry" "my_acr" {
-  name                = "myacrmai2025"
+  name                = "myacrmai20255"
   resource_group_name = azurerm_resource_group.my_rg.name
   location            = azurerm_resource_group.my_rg.location
   sku                 = "Basic"
