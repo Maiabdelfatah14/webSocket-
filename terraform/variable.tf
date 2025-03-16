@@ -3,8 +3,9 @@ variable "Subscription_id" {
   default = "2204702f-2344-4ad7-acc5-63b9daea47de"
 }
 
-variable "azurerm_linux_web_app_name" {
+variable "azurer_websocker_app" {
   type = string
+  default = "fastapi-websocket"
 }
 
 variable "azurerm_linux_web_app_resource_group_name" {
