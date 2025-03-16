@@ -6,9 +6,9 @@ image:
   pullPolicy: IfNotPresent
 
 service:
-  type: ClusterIP
-  port: 80
-  targetPort: 8000
+  type: LoadBalancer
+  port: 8800
+  targetPort: 8800
 
 resources:
   limits:
