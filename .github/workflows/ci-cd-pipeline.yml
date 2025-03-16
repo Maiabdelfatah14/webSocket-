@@ -92,10 +92,16 @@ jobs:
             terraform init
             terraform apply -auto-approve -var "Subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
-      - name: Deploy to Azure App Service
+      - name: Deploy Web App on Azure App Service
         run: |
-          az webapp config container set --name my-websocket-app --resource-group myResourceGroupTR \
-            --docker-custom-image-name myacrTR202.azurecr.io/fastapi-websocket:latest
+          az webapp config container set \
+            --name my-fastapi-websocket-app \
+            --resource-group myResourceGroupTR \
+            --docker-custom-image-name myacrTR202.azurecr.io/fastapi-websocket:latest \
+            --docker-registry-server-url https://myacrTR202.azurecr.io \
+            --docker-registry-server-user ${{ secrets.ACR_USERNAMETR }} \
+            --docker-registry-server-password ${{ secrets.ACR_PASSWORDTR }}
+
 
       - name: Get AKS Credentials
         run: az aks get-credentials --resource-group AKCHELM --name my-aks-clusterHELM
