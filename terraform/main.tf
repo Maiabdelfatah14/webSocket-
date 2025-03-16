@@ -44,14 +44,35 @@ resource "azurerm_container_registry" "my_acr" {
   }
 }
 
-# التحقق مما إذا كان App Service موجودًا
-data "azurerm_app_service" "existing_app_service" {
-  name                = "my-websocket-app"
+# إنشاء App Service Plan
+resource "azurerm_app_service_plan" "my_plan" {
+  name                = "my-appservice-plan"
+  location            = "West Europe"
   resource_group_name = "myResourceGroupTR"
+  kind                = "Linux"
+  reserved            = true
+
+  sku {
+    tier = "Basic"
+    size = "B1"
+  }
 }
 
+# التحقق مما إذا كان App Service موجودًا باستخدام `az api`
+locals {
+  app_service_exists = try(length(jsondecode(data.external.check_app_service.result.app_service)), 0) > 0
+}
+
+data "external" "check_app_service" {
+  program = ["bash", "-c", <<EOT
+    az webapp show --name my-websocket-app --resource-group myResourceGroupTR --query id --output json || echo '{}'
+  EOT
+  ]
+}
+
+# إنشاء App Service فقط إذا لم يكن موجودًا
 resource "azurerm_app_service" "my_app_service" {
-  count               = length(data.azurerm_app_service.existing_app_service.id) > 0 ? 0 : 1
+  count               = local.app_service_exists ? 0 : 1
   name                = "my-websocket-app"
   location            = "West Europe"
   resource_group_name = "myResourceGroupTR"
@@ -65,16 +86,4 @@ resource "azurerm_app_service" "my_app_service" {
     ignore_changes = [tags]
   }
 }
-
-resource "azurerm_app_service_plan" "my_plan" {
-  name                = "my-appservice-plan"
-  location            = "West Europe"
-  resource_group_name = "myResourceGroupTR"
-  kind                = "Linux"
-  reserved            = true
-
-  sku {
-    tier = "Basic"
-    size = "B1"
-  }
-}
+ 
