@@ -39,7 +39,8 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Log in to Azure Container Registry
-        run: az acr login --name myacrTR202
+        run: echo ${{ secrets.ACR_PASSWORDTR }} | docker login myacrTR202.azurecr.io -u ${{ secrets.ACR_USERNAMETR }} --password-stdin
+
 
       - name: Build and push Docker image to ACR
         run: |
