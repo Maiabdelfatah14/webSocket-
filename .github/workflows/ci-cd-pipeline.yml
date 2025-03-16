@@ -56,6 +56,19 @@ jobs:
           allow-no-subscriptions: false
           auth-type: SERVICE_PRINCIPAL
 
+      - name: Log in to Azure Container Registry (ACR)
+        uses: azure/docker-login@v1
+        with:
+          login-server: myacrHELM.azurecr.io
+          username: ${{ secrets.AZURE_CLIENT_ID }}
+          password: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+      - name: Build and push Docker image to ACR
+        run: |
+          docker build -t myacrhelm.azurecr.io/fastapi-websocket:latest .
+          docker push myacrhelm.azurecr.io/fastapi-websocket:latest
+
+
       - name: Check if Resource Group & ACR exist
         run: |
           az group show --name myResourceGroupTR || az group create --name myResourceGroupTR --location "West Europe"
