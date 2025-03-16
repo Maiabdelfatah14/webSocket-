@@ -44,13 +44,12 @@ resource "azurerm_container_registry" "my_acr" {
   }
 }
 
-# إنشاء App Service Plan
-resource "azurerm_app_service_plan" "my_plan" {
-  name                = "my-appservice-plan"
+resource "azurerm_app_service_plan" "app_service_plan" {
+  name                = "myAppServicePlan"
   location            = "West Europe"
-  resource_group_name = "myResourceGroupTR"
+  resource_group_name = azurerm_resource_group.my_rg[0].name
   kind                = "Linux"
-  reserved            = true
+  reserved            = true  # مطلوب لـ Linux-based App Service
 
   sku {
     tier = "Basic"
@@ -58,32 +57,24 @@ resource "azurerm_app_service_plan" "my_plan" {
   }
 }
 
-# التحقق مما إذا كان App Service موجودًا باستخدام `az api`
-locals {
-  app_service_exists = try(length(jsondecode(data.external.check_app_service.result.app_service)), 0) > 0
-}
-
-data "external" "check_app_service" {
-  program = ["bash", "-c", <<EOT
-    az webapp show --name my-websocket-app --resource-group myResourceGroupTR --query id --output json || echo '{}'
-  EOT
-  ]
-}
-
-# إنشاء App Service فقط إذا لم يكن موجودًا
-resource "azurerm_app_service" "my_app_service" {
-  count               = local.app_service_exists ? 0 : 1
-  name                = "my-websocket-app"
-  location            = "West Europe"
-  resource_group_name = "myResourceGroupTR"
-  app_service_plan_id = azurerm_app_service_plan.my_plan.id
+resource "azurerm_app_service" "web_app" {
+  name                = "my-fastapi-websocket-app"
+  location            = azurerm_resource_group.my_rg[0].location
+  resource_group_name = azurerm_resource_group.my_rg[0].name
+  app_service_plan_id = azurerm_app_service_plan.app_service_plan.id
 
   site_config {
     linux_fx_version = "DOCKER|myacrTR202.azurecr.io/fastapi-websocket:latest"
   }
 
-  lifecycle {
-    ignore_changes = [tags]
+  identity {
+    type = "SystemAssigned"
+  }
+
+  app_settings = {
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
+    DOCKER_REGISTRY_SERVER_URL          = "https://${azurerm_container_registry.my_acr[0].login_server}"
+    DOCKER_REGISTRY_SERVER_USERNAME     = azurerm_container_registry.my_acr[0].admin_username
+    DOCKER_REGISTRY_SERVER_PASSWORD     = azurerm_container_registry.my_acr[0].admin_password
   }
 }
- 
