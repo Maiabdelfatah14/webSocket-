@@ -56,12 +56,12 @@ jobs:
           allow-no-subscriptions: false
           auth-type: SERVICE_PRINCIPAL
 
-      - name: Log in to Azure Container Registry (ACR)
-        uses: azure/docker-login@v1
-        with:
-          login-server: myacrHELM.azurecr.io
-          username: ${{ secrets.AZURE_CLIENT_ID }}
-          password: ${{ secrets.AZURE_CLIENT_SECRET }}
+      - name: Authenticate to ACR
+        run: |
+          az acr login --name myacrHELM --expose-token > token.json
+          TOKEN=$(jq -r .accessToken token.json)
+          echo $TOKEN | docker login myacrHELM.azurecr.io --username 00000000-0000-0000-0000-000000000000 --password-stdin
+
 
       - name: Build and push Docker image to ACR
         run: |
