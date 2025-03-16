@@ -44,14 +44,6 @@ resource "azurerm_container_registry" "my_acr" {
   }
 }
 
-resource "azurerm_service_plan" "app_service_plan" {
-  name                = "myAppServicePlan"
-  location            = azurerm_resource_group.my_rg[0].location
-  resource_group_name = azurerm_resource_group.my_rg[0].name
-  os_type             = "Linux"
-
-  sku_name = "B1"
-}
 
 resource "azurerm_service_plan" "app_service_plan" {
   name                = "myAppServicePlan"
