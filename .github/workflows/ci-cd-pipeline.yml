@@ -47,25 +47,3 @@ jobs:
         run: |
           terraform init
           terraform apply -auto-approve
-         
-      - name: Set up Helm
-        uses: azure/setup-helm@v1
-
-      - name: Helm install or upgrade
-        run: |
-          helm upgrade --install my-websocket-app ./charts/my-websocket-app --set image.tag=latest
-
-  gitops:
-    runs-on: ubuntu-latest
-    needs: deploy
-    steps:
-      - name: Set up ArgoCD CLI
-        uses: argoproj/argo-cd-action@v2
-        with:
-          argocd-server: ${{ secrets.ARGOCD_SERVER }}
-          argocd-token: ${{ secrets.ARGOCD_TOKEN }}
-
-      - name: Sync application using ArgoCD
-        run: |
-          argocd app sync my-websocket-app
-          argocd app wait my-websocket-app --timeout 600
