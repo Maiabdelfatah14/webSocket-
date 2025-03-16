@@ -50,8 +50,8 @@ module "websocketapp"{
     azurerm_linux_web_app_name                               = var.Websocket_status_worker_release_name
     # azurerm_linux_web_app_resource_group_name= module.Websocket_releaseResourceGroub.azurerm_resource_group_name
     # azurerm_linux_web_app_location = module.Websocket_releaseResourceGroub.azurerm_resource_group_location
-    azurerm_linux_web_app_resource_group_name                = data.azurerm_resource_group.Websocket_release.name
-    azurerm_linux_web_app_location                           = data.azurerm_resource_group.Websocket_release.location
+    azurerm_linux_web_app_resource_group_name                = data.azurerm_resource_group.my_rg.name
+    azurerm_linux_web_app_location                           = data.azurerm_resource_group.my_rg.location
     azurerm_linux_web_app_azurerm_service_plan_location      = var.Websocket_status_worker_release_azurerm_service_plan_location
     azurerm_linux_web_app_azurerm_service_plan_name          = var.Websocket_status_worker_release_azurerm_service_plan_name
     azurerm_linux_web_app_azurerm_service_plan_id            = var.Websocket_status_worker_release_service_plan_id
@@ -65,10 +65,10 @@ module "websocketapp"{
     azurerm_linux_web_app_app_docker_image                   = var.Websocket_status_worker_docker_image
     azurerm_linux_web_app_docker_registry_url                = var.Websocket_status_workerdocker_registry_url  
     
-    azurerm_linux_web_app_docker_registry_password           = data.azurerm_container_registry.ContainerrRelease.admin_password
+    azurerm_linux_web_app_docker_registry_password           = data.azurerm_container_registry.existing_acr.admin_password
     # https://<acr-name>.azurecr.io
-    docker_registry_password                                 = data.azurerm_container_registry.ContainerrRelease.admin_password
-    docker_registry_username                                 = data.azurerm_container_registry.ContainerrRelease.admin_username 
+    docker_registry_password                                 = data.azurerm_container_registry.existing_acr.admin_password
+    docker_registry_username                                 = data.azurerm_container_registry.existing_acr.admin_username 
     
 }
 
