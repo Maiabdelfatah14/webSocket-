@@ -56,17 +56,6 @@ jobs:
           allow-no-subscriptions: false
           auth-type: SERVICE_PRINCIPAL
 
-      - name: Authenticate to ACR
-        run: |
-          az acr login --name myacrHELM --expose-token > token.json
-          TOKEN=$(jq -r .accessToken token.json)
-          echo $TOKEN | docker login myacrHELM.azurecr.io --username 00000000-0000-0000-0000-000000000000 --password-stdin
-
-
-      - name: Build and push Docker image to ACR
-        run: |
-          docker build -t myacrhelm.azurecr.io/fastapi-websocket:latest .
-          docker push myacrhelm.azurecr.io/fastapi-websocket:latest
 
 
       - name: Check if Resource Group & ACR exist
@@ -87,6 +76,12 @@ jobs:
         run: |
          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
+      - name: Build and push Docker image to ACR
+        run: |
+          docker build -t myacrhelm.azurecr.io/fastapi-websocket:latest .
+          docker push myacrhelm.azurecr.io/fastapi-websocket:latest
+
+   
       - name: Deploy using Helm
         run: |
           helm upgrade --install websocket-app ./helm \
