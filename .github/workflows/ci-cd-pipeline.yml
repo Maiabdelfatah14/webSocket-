@@ -43,6 +43,10 @@ jobs:
         with:
             terraform_version: latest
 
+      - name: Check if Resource Group & ACR exist
+        run: |
+          az group show --name myResourceGroupTR || az group create --name myResourceGroupTR --location "West Europe"
+          az acr show --name myacrTR202 || echo "ACR not found, will create in Terraform"
 
       - name: Terraform init and apply
         working-directory: terraform
