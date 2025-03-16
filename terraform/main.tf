@@ -9,7 +9,7 @@ data "azurerm_resource_group" "existing_rg" {
 }
 
 resource "azurerm_resource_group" "my_rg" {
-  count = length(data.azurerm_resource_group.existing_rg) > 0 ? 0 : 1
+  count = length(data.azurerm_resource_group.existing_rg.id) > 0 ? 0 : 1
   
   name     = "myResourceGroupTR"
   location = "West Europe"
@@ -26,7 +26,7 @@ data "azurerm_container_registry" "existing_acr" {
 }
 
 resource "azurerm_container_registry" "my_acr" {
-  count = length(data.azurerm_container_registry.existing_acr) > 0 ? 0 : 1
+  count = length(data.azurerm_container_registry.existing_acr.id) > 0 ? 0 : 1
 
   name                = "myacrTR202"
   resource_group_name = "myResourceGroupTR"
@@ -60,13 +60,10 @@ resource "azurerm_linux_web_app" "web_app" {
   name                = "my-fastapi-websocket-app"
   location            = coalesce(try(azurerm_resource_group.my_rg[0].location, ""), data.azurerm_resource_group.existing_rg.location)
   resource_group_name = coalesce(try(azurerm_resource_group.my_rg[0].name, ""), data.azurerm_resource_group.existing_rg.name)
-  service_plan_id     = azurerm_service_plan.app_service_plan.id  # ✅ الاسم الصحيح
+  service_plan_id     = azurerm_service_plan.app_service_plan.id  
 
   site_config {
-    application_stack {
-      docker_image     = "${coalesce(try(azurerm_container_registry.my_acr[0].login_server, ""), data.azurerm_container_registry.existing_acr.login_server)}/fastapi-websocket"
-      docker_image_tag = "latest"
-    }
+    linux_fx_version = "DOCKER|${coalesce(try(azurerm_container_registry.my_acr[0].login_server, ""), data.azurerm_container_registry.existing_acr.login_server)}/fastapi-websocket:latest"
   }
 
   identity {
@@ -80,3 +77,4 @@ resource "azurerm_linux_web_app" "web_app" {
     DOCKER_REGISTRY_SERVER_PASSWORD     = coalesce(try(azurerm_container_registry.my_acr[0].admin_password, ""), data.azurerm_container_registry.existing_acr.admin_password)
   }
 }
+
