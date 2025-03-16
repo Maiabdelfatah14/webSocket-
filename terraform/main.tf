@@ -1,9 +1,7 @@
 provider "azurerm" {
   features {}
 
-  subscription_id = "2204702f-2344-4ad7-acc5-63b9daea47de"
-  tenant_id       = "19fe7ed7-01ca-4ae6-9cb4-3d75b5264420"
-  client_id       = "585480eb-4228-45fe-afa7-2485eb4b8687"
+  subscription_id = var.Subscription_id
 }
 
 resource "azurerm_resource_group" "my_rg" {
