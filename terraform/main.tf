@@ -58,7 +58,7 @@ resource "azurerm_app_service" "web_app" {
   name                = "my-fastapi-websocket-app"
   location            = azurerm_resource_group.my_rg[0].location
   resource_group_name = azurerm_resource_group.my_rg[0].name
-  service_plan_id     = azurerm_service_plan.app_service_plan.id
+  app_service_plan_id = azurerm_service_plan.app_service_plan.id  # ✅ الاسم الصحيح
 
   site_config {
     linux_fx_version = "DOCKER|${azurerm_container_registry.my_acr[0].login_server}/fastapi-websocket:latest"
