@@ -47,8 +47,8 @@ resource "azurerm_container_registry" "my_acr" {
 
 resource "azurerm_service_plan" "app_service_plan" {
   name                = "myAppServicePlan"
-  location            = azurerm_resource_group.my_rg.location
-  resource_group_name = azurerm_resource_group.my_rg.name
+  location            = azurerm_resource_group.my_rg[0].location
+  resource_group_name = azurerm_resource_group.my_rg[0].name
   os_type             = "Linux"
 
   sku_name = "B1"
@@ -56,12 +56,12 @@ resource "azurerm_service_plan" "app_service_plan" {
 
 resource "azurerm_app_service" "web_app" {
   name                = "my-fastapi-websocket-app"
-  location            = azurerm_resource_group.my_rg.location
-  resource_group_name = azurerm_resource_group.my_rg.name
+  location            = azurerm_resource_group.my_rg[0].location
+  resource_group_name = azurerm_resource_group.my_rg[0].name
   service_plan_id     = azurerm_service_plan.app_service_plan.id
 
   site_config {
-    linux_fx_version = "DOCKER|myacrTR202.azurecr.io/fastapi-websocket:latest"
+    linux_fx_version = "DOCKER|${azurerm_container_registry.my_acr[0].login_server}/fastapi-websocket:latest"
   }
 
   identity {
@@ -70,8 +70,8 @@ resource "azurerm_app_service" "web_app" {
 
   app_settings = {
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
-    DOCKER_REGISTRY_SERVER_URL          = "https://${azurerm_container_registry.my_acr.login_server}"
-    DOCKER_REGISTRY_SERVER_USERNAME     = azurerm_container_registry.my_acr.admin_username
-    DOCKER_REGISTRY_SERVER_PASSWORD     = azurerm_container_registry.my_acr.admin_password
+    DOCKER_REGISTRY_SERVER_URL          = "https://${azurerm_container_registry.my_acr[0].login_server}"
+    DOCKER_REGISTRY_SERVER_USERNAME     = azurerm_container_registry.my_acr[0].admin_username
+    DOCKER_REGISTRY_SERVER_PASSWORD     = azurerm_container_registry.my_acr[0].admin_password
   }
 }
