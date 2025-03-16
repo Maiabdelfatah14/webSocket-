@@ -3,7 +3,6 @@ provider "azurerm" {
   subscription_id = var.Subscription_id
 }
 
-# التحقق مما إذا كان Resource Group موجودًا
 data "azurerm_resource_group" "existing_rg" {
   name = "myResourceGroupTR"
 }
@@ -19,7 +18,6 @@ resource "azurerm_resource_group" "my_rg" {
   }
 }
 
-# التحقق مما إذا كان ACR موجودًا
 data "azurerm_container_registry" "existing_acr" {
   name                = "myacrTR202"
   resource_group_name = "myResourceGroupTR"
@@ -46,7 +44,6 @@ resource "azurerm_container_registry" "my_acr" {
   }
 }
 
-# استبدال `azurerm_app_service_plan` بـ `azurerm_service_plan`
 resource "azurerm_service_plan" "app_service_plan" {
   name                = "myAppServicePlan"
   location            = coalesce(try(azurerm_resource_group.my_rg[0].location, ""), data.azurerm_resource_group.existing_rg.location)
@@ -55,7 +52,6 @@ resource "azurerm_service_plan" "app_service_plan" {
   sku_name            = "B1"
 }
 
-# استبدال `azurerm_app_service` بـ `azurerm_linux_web_app`
 resource "azurerm_linux_web_app" "web_app" {
   name                = "my-fastapi-websocket-app"
   location            = coalesce(try(azurerm_resource_group.my_rg[0].location, ""), data.azurerm_resource_group.existing_rg.location)
@@ -63,7 +59,10 @@ resource "azurerm_linux_web_app" "web_app" {
   service_plan_id     = azurerm_service_plan.app_service_plan.id  
 
   site_config {
-    linux_fx_version = "DOCKER|${coalesce(try(azurerm_container_registry.my_acr[0].login_server, ""), data.azurerm_container_registry.existing_acr.login_server)}/fastapi-websocket:latest"
+    application_stack {
+      docker_image_name   = "${coalesce(try(azurerm_container_registry.my_acr[0].login_server, ""), data.azurerm_container_registry.existing_acr.login_server)}/fastapi-websocket"
+      docker_image_tag    = "latest"
+    }
   }
 
   identity {
@@ -72,9 +71,6 @@ resource "azurerm_linux_web_app" "web_app" {
 
   app_settings = {
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
-    DOCKER_REGISTRY_SERVER_URL          = "https://${coalesce(try(azurerm_container_registry.my_acr[0].login_server, ""), data.azurerm_container_registry.existing_acr.login_server)}"
-    DOCKER_REGISTRY_SERVER_USERNAME     = coalesce(try(azurerm_container_registry.my_acr[0].admin_username, ""), data.azurerm_container_registry.existing_acr.admin_username)
-    DOCKER_REGISTRY_SERVER_PASSWORD     = coalesce(try(azurerm_container_registry.my_acr[0].admin_password, ""), data.azurerm_container_registry.existing_acr.admin_password)
   }
 }
 
