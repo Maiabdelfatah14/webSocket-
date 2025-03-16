@@ -4,4 +4,4 @@ image:
   tag: latest
 service:
   type: LoadBalancer
-  port: 8800
+  port: 8080
