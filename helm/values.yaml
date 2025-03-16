@@ -1,0 +1,13 @@
+replicaCount: 1
+
+image:
+  repository: myacrHELM.azurecr.io/fastapi-websocket
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: LoadBalancer
+  port: 80
+
+ingress:
+  enabled: false
