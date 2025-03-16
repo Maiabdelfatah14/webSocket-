@@ -60,8 +60,7 @@ resource "azurerm_linux_web_app" "web_app" {
 
   site_config {
     application_stack {
-      docker_image_name   = "${coalesce(try(azurerm_container_registry.my_acr[0].login_server, ""), data.azurerm_container_registry.existing_acr.login_server)}/fastapi-websocket"
-      docker_image_tag    = "latest"
+      docker_image_name = "${coalesce(try(azurerm_container_registry.my_acr[0].login_server, ""), data.azurerm_container_registry.existing_acr.login_server)}/fastapi-websocket:latest"
     }
   }
 
