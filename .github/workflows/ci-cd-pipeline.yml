@@ -188,7 +188,21 @@ jobs:
           kubectl apply -f argocd/argocd-app.yaml -n argocd
 
 
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+ 
       - name: Sync ArgoCD Application
         run: |
+          echo "Checking if another sync operation is in progress..."
+          OP_STATUS=$(argocd app get websocket-app --server=${{ env.ARGOCD_SERVER }} -o json | jq -r '.status.operationState.phase')
+      
+          if [[ "$OP_STATUS" == "Running" ]]; then
+            echo "Another sync operation is already in progress. Terminating..."
+            argocd app terminate-op websocket-app --server=${{ env.ARGOCD_SERVER }}
+            sleep 10  # انتظر قليلًا حتى يتم الإنهاء بالكامل
+          fi
+      
+          echo "Starting new sync operation..."
           argocd app sync websocket-app --server=50.85.148.198 --grpc-web
 
