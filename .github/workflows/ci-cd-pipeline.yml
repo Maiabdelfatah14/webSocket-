@@ -122,12 +122,18 @@ jobs:
             --docker-password="${{ secrets.ACR_PASSWORDHELM }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      # 🔹 Install NGINX Ingress Controller
+      - name: Add Ingress-NGINX Helm Repository
+        run: helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+
+      - name: Update Helm Repositories
+        run: helm repo update
+    
       - name: Install NGINX Ingress Controller
         run: |
           kubectl create namespace ingress-nginx || true
           helm upgrade --install nginx-ingress ingress-nginx/ingress-nginx \
             --namespace ingress-nginx --set controller.publishService.enabled=true
+
 
       # 🔹 Deploy WebSocket App using Helm
       - name: Deploy WebSocket App using Helm
