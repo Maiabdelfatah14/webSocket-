@@ -166,12 +166,19 @@ jobs:
 
 
 
-    
+      - name: Install ArgoCD CLI
+        run: |
+          curl -sSL -o /tmp/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x /tmp/argocd
+          mkdir -p ~/.local/bin
+          mv /tmp/argocd ~/.local/bin/
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-
+  
       - name: Authenticate with ArgoCD
         run: |
-          argocd login $ARGOCD_SERVER --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
+          argocd login ${{ secrets.ARGOCD_SERVER }} --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
+
 
 
 
