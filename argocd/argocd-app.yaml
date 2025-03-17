@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: "https://github.com/Maiabdelfatah14/webSocket-.git"  
-    path: helm-chart
+    path: helm
     targetRevision: main
   destination:
     server: "https://kubernetes.default.svc"
