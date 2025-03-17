@@ -5,17 +5,15 @@ metadata:
   namespace: default
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/websocket-services: websocket-service
 spec:
-  ingressClassName: nginx
   rules:
-  - host: {{ .Values.ingress.host }}  # الدومين يأتي من values.yaml
+  - host: {{ .Values.ingress.host }}
     http:
       paths:
-      - path: /
-        pathType: Prefix
+      - path: {{ .Values.ingress.path }}
+        pathType: {{ .Values.ingress.pathType }}
         backend:
           service:
             name: websocket-service
             port:
-              number: {{ .Values.service.port }}
+              number: {{ .Values.ingress.servicePort }}
