@@ -200,3 +200,21 @@ jobs:
           argocd app sync websocket-app --server=50.85.148.198 --grpc-web
 
 
+      - name: التحقق من حالة تطبيق ArgoCD
+        run: |
+          echo "📌 التحقق من حالة التطبيق websocket-app في ArgoCD..."
+          
+          # جلب حالة التطبيق من ArgoCD
+          APP_STATUS=$(argocd app get websocket-app --server=50.85.148.198 -o json | jq -r '.status.sync.status')
+          HEALTH_STATUS=$(argocd app get websocket-app --server=50.85.148.198 -o json | jq -r '.status.health.status')
+
+          echo "🔄 حالة المزامنة: $APP_STATUS"
+          echo "❤️ حالة الصحة: $HEALTH_STATUS"
+
+          # التحقق مما إذا كان التطبيق متزامنًا وصحيًا
+          if [[ "$APP_STATUS" == "Synced" && "$HEALTH_STATUS" == "Healthy" ]]; then
+            echo "✅ التطبيق متزامن وصحي ✅"
+          else
+            echo "⚠️ التطبيق غير متزامن أو غير صحي، سيتم تشغيل المزامنة..."
+            argocd app sync websocket-app --server=50.85.148.198 --grpc-web
+          fi
