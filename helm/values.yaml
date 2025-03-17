@@ -6,7 +6,7 @@ image:
   pullPolicy: IfNotPresent
 
 service:
-  type: LoadBalancer
+  type: ClusterIP  # تغييرها إلى ClusterIP لأن Ingress سيتعامل مع التوجيه
   port: 8800
   targetPort: 8800
 
@@ -20,7 +20,17 @@ resources:
 
 ingress:
   enabled: true
-  host: 50.85.43.134  
+  host: websocket.aks.example.com  # يفضل استخدام DNS وليس IP
+  path: /
+  pathType: Prefix
+  servicePort: 8800  # تأكد من أن المنفذ صحيح
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
 
 
 nodeSelector: {}
