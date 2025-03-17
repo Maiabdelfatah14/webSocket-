@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: websocket-service
+  namespace: default
+spec:
+  type: LoadBalancer
+  selector:
+    app: websocket-app
+  ports:
+    - protocol: TCP
+      port: 8800
+      targetPort: 8800
+      nodePort: 31749  # 🚀 تحديد منفذ ثابت
