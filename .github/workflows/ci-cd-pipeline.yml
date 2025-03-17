@@ -180,7 +180,8 @@ jobs:
 
       - name: Authenticate with ArgoCD
         run: |
-          argocd login ${{ env.ARGOCD_SERVER }}:80 --username admin --password ${{ env.ARGOCD_PASSWORD }} --insecure
+          argocd login  50.85.148.198:80  --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
+
     
       - name: Apply ArgoCD Application
         run: |
@@ -188,6 +189,6 @@ jobs:
 
       - name: Sync ArgoCD Application
         run: |
-          argocd app sync websocket-app --server=${{ env.ARGOCD_SERVER }} --username=admin --password=${{ env.ARGOCD_PASSWORD }} --grpc-web
+          argocd app sync websocket-app --grpc-web
 
 
