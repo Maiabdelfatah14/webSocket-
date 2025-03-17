@@ -125,14 +125,25 @@ jobs:
       - name: Add Ingress-NGINX Helm Repository
         run: helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 
-      - name: Update Helm Repositories
+      - name: تحديث مستودعات Helm
         run: helm repo update
     
-      - name: Install NGINX Ingress Controller
+      - name: حذف Ingress Controller وإعادة تثبيته
         run: |
-          kubectl create namespace ingress-nginx || true
+          helm uninstall nginx-ingress -n ingress-nginx || true
+          kubectl delete namespace ingress-nginx || true
+          kubectl create namespace ingress-nginx
+          
           helm upgrade --install nginx-ingress ingress-nginx/ingress-nginx \
-            --namespace ingress-nginx --set controller.publishService.enabled=true
+            --namespace ingress-nginx \
+            --set controller.service.type=LoadBalancer \
+            --set controller.publishService.enabled=true
+          
+          # التحقق من أن External IP تم تعيينه
+          echo "انتظر حتى يتم تعيين External IP..."
+          sleep 60
+          kubectl get svc -n ingress-nginx
+
 
 
       # 🔹 Deploy WebSocket App using Helm
