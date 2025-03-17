@@ -187,8 +187,8 @@ jobs:
         run: |
           kubectl apply -f argocd/argocd-app.yaml -n argocd
 
+
       - name: Sync ArgoCD Application
         run: |
-          argocd app sync websocket-app --grpc-web
-
+          argocd app sync websocket-app --server=50.85.148.198 --grpc-web
 
