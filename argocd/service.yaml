@@ -5,6 +5,7 @@ metadata:
   namespace: default
 spec:
   type: LoadBalancer
+  externalTrafficPolicy: Local
   selector:
     app: websocket-app
   ports:
