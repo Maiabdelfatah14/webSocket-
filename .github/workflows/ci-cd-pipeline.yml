@@ -30,28 +30,13 @@ jobs:
           docker build -t maiabdelfata7/fastapi-websocket .
           docker push maiabdelfata7/fastapi-websocket
 
-         
-      - name: Log in to Azure
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
       - name: Log in to Azure Container Registry
         run: echo ${{ secrets.ACR_PASSWORDTR }} | docker login myacrTR202.azurecr.io -u ${{ secrets.ACR_USERNAMETR }} --password-stdin
 
-
       - name: Build and push Docker image to ACR
         run: |
           docker build -t myacrTR202.azurecr.io/fastapi-websocket:latest .
           docker push myacrTR202.azurecr.io/fastapi-websocket:latest
-          
-      - name: Build and push Docker image to ACR
-        run: |
-          docker build -t myacrTR202.azurecr.io/fastapi-websocket:latest .
-          docker push myacrTR202.azurecr.io/fastapi-websocket:latest
-  
 
   deploy:
     runs-on: ubuntu-latest
@@ -68,7 +53,7 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-            terraform_version: latest
+          terraform_version: latest
 
       - name: Log in to Azure
         uses: azure/login@v1
@@ -78,8 +63,6 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           allow-no-subscriptions: false
           auth-type: SERVICE_PRINCIPAL
-
-
 
       - name: Check if Resource Group & ACR exist
         run: |
@@ -102,7 +85,6 @@ jobs:
             --docker-registry-server-user ${{ secrets.ACR_USERNAMETR }} \
             --docker-registry-server-password ${{ secrets.ACR_PASSWORDTR }}
 
-
       - name: Get AKS Credentials
         run: az aks get-credentials --resource-group AKCHELM --name my-aks-clusterHELM
 
@@ -110,16 +92,37 @@ jobs:
         run: |
          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-      - name: Build and push Docker image to ACR
+      - name: Log in to ACR for Helm Deployment
         run: |
-          docker build -t myacrhelm.azurecr.io/fastapi-websocket:latest .
-          docker push myacrhelm.azurecr.io/fastapi-websocket:latest
+          echo "${ACR_PASSWORDHELM}" | docker login myacrhelm.azurecr.io -u "${ACR_USERNAMEHELM}" --password-stdin
+        env:
+          ACR_USERNAMEHELM: ${{ secrets.ACR_USERNAMEHELM }}
+          ACR_PASSWORDHELM: ${{ secrets.ACR_PASSWORDHELM }}
 
+      - name: Build and push Docker image to ACR (Helm)
+        run: |
+           docker build -t myacrhelm.azurecr.io/fastapi-websocket:latest .
+           docker push myacrhelm.azurecr.io/fastapi-websocket:latest
+        env:
+          ACR_USERNAMEHELM: ${{ secrets.ACR_USERNAMEHELM }}
+          ACR_PASSWORDHELM: ${{ secrets.ACR_PASSWORDHELM }}
 
-   
+      - name: Create Kubernetes Secret for ACR
+        run: |
+          kubectl create secret docker-registry acr-secret \
+            --namespace default \
+            --docker-server=myacrhelm.azurecr.io \
+            --docker-username="${ACR_USERNAMEHELM}" \
+            --docker-password="${ACR_PASSWORDHELM}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+        env:
+          ACR_USERNAMEHELM: ${{ secrets.ACR_USERNAMEHELM }}
+          ACR_PASSWORDHELM: ${{ secrets.ACR_PASSWORDHELM }}
+
       - name: Deploy using Helm
         run: |
           helm upgrade --install websocket-app ./helm \
             --namespace default \
             --set image.repository=myacrHELM.azurecr.io/fastapi-websocket \
-            --set image.tag=latest
+            --set image.tag=latest \
+            --set image.pullSecrets[0]=acr-secret
