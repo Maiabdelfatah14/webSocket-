@@ -11,4 +11,3 @@ spec:
     - protocol: TCP
       port: 8800
       targetPort: 8800
-      nodePort: 31749  # 🚀 تحديد منفذ ثابت
