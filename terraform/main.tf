@@ -44,7 +44,21 @@ resource "azurerm_container_registry" "my_acr" {
   }
 }
 
+# جلب معلومات الـ App Service Plan إذا كان موجودًا
+data "azurerm_service_plan" "existing_app_service_plan" {
+  name                = "myAppServicePlan"
+  resource_group_name = "myResourceGroupTR"
+}
+
+# جلب معلومات الـ Web App إذا كان موجودًا
+data "azurerm_linux_web_app" "existing_web_app" {
+  name                = "my-fastapi-websocket-app"
+  resource_group_name = "myResourceGroupTR"
+}
+
+# إذا لم يكن الـ App Service Plan موجودًا، قم بإنشائه
 resource "azurerm_service_plan" "app_service_plan" {
+  count               = length(data.azurerm_service_plan.existing_app_service_plan.id) > 0 ? 0 : 1
   name                = "myAppServicePlan"
   location            = coalesce(try(azurerm_resource_group.my_rg[0].location, ""), data.azurerm_resource_group.existing_rg.location)
   resource_group_name = coalesce(try(azurerm_resource_group.my_rg[0].name, ""), data.azurerm_resource_group.existing_rg.name)
@@ -52,7 +66,9 @@ resource "azurerm_service_plan" "app_service_plan" {
   sku_name            = "B1"
 }
 
+# إذا لم يكن الـ Web App موجودًا، قم بإنشائه
 resource "azurerm_linux_web_app" "web_app" {
+  count               = length(data.azurerm_linux_web_app.existing_web_app.id) > 0 ? 0 : 1
   name                = "my-fastapi-websocket-app"
   location            = coalesce(try(azurerm_resource_group.my_rg[0].location, ""), data.azurerm_resource_group.existing_rg.location)
   resource_group_name = coalesce(try(azurerm_resource_group.my_rg[0].name, ""), data.azurerm_resource_group.existing_rg.name)
