@@ -158,10 +158,11 @@ jobs:
 
       - name: Apply ArgoCD Application
         run: |
-          kubectl apply -f argocd-app.yaml -n argocd
+          kubectl apply -f argocd/argocd-app.yaml -n argocd
 
       - name: Sync ArgoCD Application
         run: |
-           argocd app sync websocket-app --server=$ARGOCD_SERVER --insecure --username=admin --password=$ARGOCD_PASSWORD
+          argocd app sync websocket-app --server=${{ secrets.ARGOCD_SERVER }} --username=admin --password=${{ secrets.ARGOCD_PASSWORD }} --grpc-web
+
 
 
