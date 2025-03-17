@@ -129,8 +129,9 @@ jobs:
 
 
 
-
-            
+      - name: Delete existing ArgoCD Service
+        run: kubectl delete svc argocd-server -n argocd || true
+       
 
       - name: Install ArgoCD on AKS
         run: |
