@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: websocket-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: "https://github.com/Maiabdelfatah14/webSocket-.git"  
+    path: helm-chart
+    targetRevision: main
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
