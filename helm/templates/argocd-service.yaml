@@ -3,6 +3,11 @@ kind: Service
 metadata:
   name: argocd-server
   namespace: argocd
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    meta.helm.sh/release-name: websocket-app
+    meta.helm.sh/release-namespace: default
 spec:
   type: LoadBalancer
   selector:
