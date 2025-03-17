@@ -170,10 +170,12 @@ jobs:
           curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
           chmod +x /usr/local/bin/argocd
 
+
       - name: Authenticate with ArgoCD
         run: |
-          argocd login ${{ env.ARGOCD_SERVER }} --username admin --password ${{ env.ARGOCD_PASSWORD }} --insecure
+          argocd login ${{ secrets.ARGOCD_SERVER }}:80 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
 
+    
       - name: Apply ArgoCD Application
         run: |
           kubectl apply -f argocd/argocd-app.yaml -n argocd
