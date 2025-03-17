@@ -20,10 +20,9 @@ resources:
 
 ingress:
   enabled: true
-  host: websocket.aks.example.com  # يفضل استخدام DNS وليس IP
-  path: /
-  pathType: Prefix
-  servicePort: 8800  # تأكد من أن المنفذ صحيح
+  className: "nginx"  # تأكد من أنه nginx
+  host: websocket.aks.example.com  # غيّره إلى الدومين أو استخدم IP عام
+
 
 nodeSelector: {}
 
