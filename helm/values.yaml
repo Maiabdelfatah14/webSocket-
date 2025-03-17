@@ -18,6 +18,11 @@ resources:
     cpu: "250m"
     memory: "256Mi"
 
+ingress:
+  enabled: true
+  host: 50.85.43.134  
+
+
 nodeSelector: {}
 
 tolerations: []
