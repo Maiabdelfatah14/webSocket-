@@ -173,7 +173,7 @@ jobs:
 
       - name: Authenticate with ArgoCD
         run: |
-          argocd login ${{ secrets.ARGOCD_SERVER }}:80 --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
+          argocd login 50.85.148.198:80 --username admin --password Jg9EDZUHfu35BF5w --insecure
 
     
       - name: Apply ArgoCD Application
