@@ -128,7 +128,7 @@ jobs:
 
 
 
-           - name: Ensure ArgoCD is Installed & Service is LoadBalancer
+      - name: Ensure ArgoCD is Installed & Service is LoadBalancer
         run: |
           kubectl create namespace argocd || echo "Namespace already exists"
           if ! kubectl get svc argocd-server -n argocd > /dev/null 2>&1; then
