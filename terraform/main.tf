@@ -72,7 +72,7 @@ resource "azurerm_linux_web_app" "web_app" {
   name                = "my-fastapi-websocket-app"
   location            = coalesce(try(azurerm_resource_group.my_rg[0].location, ""), data.azurerm_resource_group.existing_rg.location)
   resource_group_name = coalesce(try(azurerm_resource_group.my_rg[0].name, ""), data.azurerm_resource_group.existing_rg.name)
-  service_plan_id     = azurerm_service_plan.app_service_plan.id  
+  service_plan_id     = azurerm_service_plan.app_service_plan[count.index].id  # تعديل هنا لاستخدام count.index
 
   site_config {
     application_stack {
@@ -88,3 +88,4 @@ resource "azurerm_linux_web_app" "web_app" {
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
   }
 }
+
