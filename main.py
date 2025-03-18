@@ -45,11 +45,3 @@ if __name__ == "__main__":
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
-
-site_config {
-  application_stack {
-    docker_image_name = "${coalesce(try(azurerm_container_registry.my_acr[0].login_server, ""), data.azurerm_container_registry.existing_acr.login_server)}/fastapi-websocket:latest"
-  }
-  docker_registry_url = "https://${coalesce(try(azurerm_container_registry.my_acr[0].login_server, ""), data.azurerm_container_registry.existing_acr.login_server)}"
-}
-
