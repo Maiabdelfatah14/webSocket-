@@ -4,14 +4,10 @@ import random
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 
-
 app = FastAPI()
 
 # خدمة الملفات الثابتة (static)
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
-
-
-app = FastAPI()
 
 connected_clients = set()
 stocks = ["AAPL", "GOOGL", "AMZN", "MSFT"]
@@ -37,11 +33,10 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         connected_clients.remove(websocket)
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=80)
-
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=80)
