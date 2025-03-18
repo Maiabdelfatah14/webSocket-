@@ -74,7 +74,7 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}  
-          auth-type: 'sp'  # Service Principal
+          auth-type: 'SERVICE_PRINCIPAL'  # Service Principal
 
       # 🔹 Ensure Resource Group & ACR exist
       - name: Check if Resource Group & ACR exist
