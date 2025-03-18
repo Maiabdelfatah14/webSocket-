@@ -1,0 +1,45 @@
+name: Enable Azure Monitor for App Service
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  enable-monitoring:
+    runs-on: ubuntu-latest
+    steps:
+    
+      - name: تسجيل الدخول إلى Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: إنشاء Application Insights إذا لم يكن موجودًا
+        run: |
+          az monitor app-insights component create \
+            --app myAppInsights \
+            --location eastus \
+            --resource-group myResourceGroupTR \
+            --application-type web \
+            --kind web
+
+      - name: ربط Application Insights بـ App Service
+        run: |
+          INSTRUMENTATION_KEY=$(az monitor app-insights component show \
+            --app myAppInsights \
+            --resource-group myResourceGroupTR \
+            --query instrumentationKey \
+            --output tsv)
+
+          az webapp config appsettings set \
+            --name my-fastapi-websocket-app \
+            --resource-group myResourceGroupTR \
+            --settings APPINSIGHTS_INSTRUMENTATIONKEY=$INSTRUMENTATION_KEY
+
+      - name: التحقق من نجاح الربط
+        run: |
+          az webapp config appsettings list \
+            --name my-fastapi-websocket-app \
+            --resource-group myResourceGroupTR \
+            --query "[?name=='APPINSIGHTS_INSTRUMENTATIONKEY']"
