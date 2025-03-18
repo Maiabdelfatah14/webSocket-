@@ -2,6 +2,14 @@ import asyncio
 import json
 import random
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.staticfiles import StaticFiles
+
+
+app = FastAPI()
+
+# خدمة الملفات الثابتة (static)
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
 
 app = FastAPI()
 
