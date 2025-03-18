@@ -1,5 +1,4 @@
 name: CI/CD Pipeline
-
 on:
   push:
     branches:
@@ -8,7 +7,6 @@ on:
       - 'helm/**'    
       - 'argocd/**'   
       - '.github/workflows/azure-monitor.yml'
-
 
 permissions:  
   id-token: write 
