@@ -10,12 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     
-      - name: تسجيل الدخول إلى Azure
+      - name: Login to Azure
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: إنشاء Application Insights إذا لم يكن موجودًا
+      - name: Create Application Insights if it doesn't exist
         run: |
           az monitor app-insights component create \
             --app myAppInsights \
@@ -24,7 +24,7 @@ jobs:
             --application-type web \
             --kind web
 
-      - name: ربط Application Insights بـ App Service
+      - name: Link Application Insights to App Service
         run: |
           INSTRUMENTATION_KEY=$(az monitor app-insights component show \
             --app myAppInsights \
@@ -37,9 +37,10 @@ jobs:
             --resource-group myResourceGroupTR \
             --settings APPINSIGHTS_INSTRUMENTATIONKEY=$INSTRUMENTATION_KEY
 
-      - name: التحقق من نجاح الربط
+      - name: Verify successful linkage
         run: |
           az webapp config appsettings list \
             --name my-fastapi-websocket-app \
             --resource-group myResourceGroupTR \
             --query "[?name=='APPINSIGHTS_INSTRUMENTATIONKEY']"
+
