@@ -8,8 +8,6 @@ on:
       - 'helm/**'    
       - 'argocd/**'    
 
-
-
 permissions:  
   id-token: write 
   contents: read
