@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h2>📊 بيانات الأسهم من WebSocket</h2>
+    <pre id="output"></pre>
+
+    <script>
+        // إنشاء اتصال WebSocket مع السيرفر
+        const socket = new WebSocket("wss://my-fastapi-websocket-app.azurewebsites.net/ws");
+
+        // عند فتح الاتصال
+        socket.onopen = function () {
+            console.log("✅ WebSocket Connected!");
+        };
+
+        // عند استقبال بيانات جديدة
+        socket.onmessage = function (event) {
+            document.getElementById("output").textContent = event.data;
+        };
+
+        // عند حدوث خطأ
+        socket.onerror = function (error) {
+            console.log("❌ WebSocket Error:", error);
+        };
+
+        // عند إغلاق الاتصال
+        socket.onclose = function () {
+            console.log("⚠️ WebSocket Disconnected.");
+        };
+    </script>
+</body>
+</html>
