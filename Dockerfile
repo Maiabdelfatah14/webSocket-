@@ -8,10 +8,11 @@ COPY static ./static
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-# تعيين متغير البيئة للمنفذ
+# تحديد متغير البيئة للمنفذ
 ENV PORT 80
 
 # تعيين المنفذ الذي سيتم تشغيل التطبيق عليه
-EXPOSE 80
+EXPOSE 80 8800
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+# تشغيل التطبيق على المنفذين
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port 80 & uvicorn main:app --host 0.0.0.0 --port 8800"]
