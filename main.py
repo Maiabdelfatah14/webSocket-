@@ -23,15 +23,15 @@ async def websocket_endpoint(websocket: WebSocket):
 
     try:
         while True:
-            stock_data = {stock: round(random.uniform(100, 1500), 2) for stock in stocks}
-            message = json.dumps(stock_data)
-
-            for client in connected_clients:
-                await client.send_text(message)
-
+            if connected_clients:  # التأكد من أن هناك عملاء متصلين قبل الإرسال
+                stock_data = {stock: round(random.uniform(100, 1500), 2) for stock in stocks}
+                message = json.dumps(stock_data)
+                
+                await asyncio.gather(*(client.send_text(message) for client in connected_clients))
+            
             await asyncio.sleep(2)
     except WebSocketDisconnect:
-        connected_clients.remove(websocket)
+        connected_clients.discard(websocket)  # استخدام discard لتجنب الخطأ إذا لم يكن موجودًا
 
 @app.get("/health")
 def health():
