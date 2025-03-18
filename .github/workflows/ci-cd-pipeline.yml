@@ -9,6 +9,7 @@ on:
       - 'argocd/**'   
       - '.github/workflows/azure-monitor.yml'
 
+
 permissions:  
   id-token: write 
   contents: read
