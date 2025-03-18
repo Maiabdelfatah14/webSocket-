@@ -99,10 +99,7 @@ jobs:
      # 🔹 Configure Health Check in Azure App Service
       - name: Enable Health Check in Azure App Service
         run: |
-          az webapp config set \
+          az webapp update \
             --name my-fastapi-websocket-app \
             --resource-group myResourceGroupTR \
-            --health-check-path "/health"
-
-
-    
+            --set healthCheckPath="/health"
