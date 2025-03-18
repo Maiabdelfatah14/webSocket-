@@ -34,8 +34,8 @@ async def websocket_endpoint(websocket: WebSocket):
         connected_clients.discard(websocket)  # استخدام discard لتجنب الخطأ إذا لم يكن موجودًا
 
 @app.get("/health")
-def health():
-    return {"status": "ok"}
+def health_check():
+    return {"status": "healthy"}
 
 if __name__ == "__main__":
     import uvicorn
