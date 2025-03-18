@@ -1,29 +1,16 @@
-import uvicorn
 import asyncio
-import random
 import json
+import random
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.staticfiles import StaticFiles
-from starlette.responses import FileResponse
 
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-@app.get("/favicon.ico")
-async def favicon():
-    return FileResponse("static/favicon.ico")
-
-stocks = ["AAPL", "GOOGL", "AMZN", "MSFT", "TSLA"]
 connected_clients = set()
-
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
+stocks = ["AAPL", "GOOGL", "AMZN", "MSFT"]
 
 @app.get("/")
 def home():
-    return {"message": "WebSocket server is running!"}
+    return {"message": "🚀 WebSocket server is running!"}
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -43,4 +30,6 @@ async def websocket_endpoint(websocket: WebSocket):
         connected_clients.remove(websocket)
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=80, reload=True)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=80)
+
