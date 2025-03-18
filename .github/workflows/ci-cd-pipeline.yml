@@ -102,5 +102,3 @@ jobs:
             --resource-group myResourceGroupTR \
             --name my-fastapi-websocket-app \
             --generic-configurations "{'healthCheckPath':'/health'}"
-
-
