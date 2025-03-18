@@ -17,6 +17,10 @@ async def favicon():
 stocks = ["AAPL", "GOOGL", "AMZN", "MSFT", "TSLA"]
 connected_clients = set()
 
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
 @app.get("/")
 def home():
     return {"message": "WebSocket server is running!"}
@@ -39,9 +43,4 @@ async def websocket_endpoint(websocket: WebSocket):
         connected_clients.remove(websocket)
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8800, reload=True)
-
-
-@app.get("/health")
-async def health_check():
-    return {"status": "ok"}
+    uvicorn.run("main:app", host="0.0.0.0", port=80, reload=True)
