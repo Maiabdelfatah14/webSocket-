@@ -6,7 +6,8 @@ on:
       - main  
     paths-ignore:
       - 'helm/**'    
-      - 'argocd/**'    
+      - 'argocd/**'   
+      - '.github/workflows/azure-monitor.yml'
 
 permissions:  
   id-token: write 
