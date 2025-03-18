@@ -96,11 +96,11 @@ jobs:
             --docker-registry-server-user ${{ secrets.ACR_USERNAMETR }} \
             --docker-registry-server-password ${{ secrets.ACR_PASSWORDTR }}
 
-   # 🔹 Enable Health Check in Azure App Service
       - name: Enable Health Check
         run: |
-          az webapp config health-check set \
+          az webapp config set \
             --resource-group myResourceGroupTR \
             --name my-fastapi-websocket-app \
-            --path "/health"
+            --generic-configurations "{'healthCheckPath':'/health'}"
+
 
