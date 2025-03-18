@@ -12,6 +12,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 ENV PORT 80
 
 # تعيين المنفذ الذي سيتم تشغيل التطبيق عليه
-EXPOSE 8800
+EXPOSE 80
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8800"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
