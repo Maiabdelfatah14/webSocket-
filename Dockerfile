@@ -8,6 +8,9 @@ COPY static ./static
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-EXPOSE 8800
+ENV PORT=80  # إضافة متغير البيئة
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8800", "--reload"]
+EXPOSE 80  # تغيير المنفذ إلى 80
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+
