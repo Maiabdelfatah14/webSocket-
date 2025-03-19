@@ -8,7 +8,8 @@ RUN apt update && apt upgrade -y && apt install -y \
     build-essential libffi-dev zlib1g-dev \
     && apt remove --purge -y perl-base \
     && apt autoremove -y && apt clean
-
+    
+RUN apt remove --purge -y perl-base
 RUN pip install --no-cache-dir -r requirements.txt
 
 ENV PORT=80
