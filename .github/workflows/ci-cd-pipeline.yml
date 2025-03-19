@@ -134,23 +134,25 @@ jobs:
           else
             echo "✅ Action Group github-actions-alerts already exists, skipping creation."
           fi
+      
+      # 🔹 إنشاء التنبيه لمراقبة زمن الاستجابة إذا لم يكن موجودًا
+      - name: Create Azure Monitor Alerts (if not exists)
+        run: |
+          if ! az monitor metrics alert list --resource-group myResourceGroupTR --query "[?name=='High Latency Alert']" --output tsv | grep -q "High Latency Alert"; then
+            echo "🚀 Creating High Latency Alert"
+            az monitor metrics alert create \
+              --name "High Latency Alert" \
+              --resource-group myResourceGroupTR \
+              --scopes "/subscriptions/2204702F-2344-4AD7-ACC5-63B9DAEA47DE/resourceGroups/myResourceGroupTR/providers/Microsoft.Web/sites/my-fastapi-websocket-app" \
+              --condition "avg HttpResponseTime > 500" \
+              --description "🚨 يتم تشغيل التنبيه عندما يتجاوز زمن الاستجابة 500 مللي ثانية" \
+              --window-size 5m \
+              --evaluation-frequency 1m \
+              --action-group "/subscriptions/2204702F-2344-4AD7-ACC5-63B9DAEA47DE/resourceGroups/myResourceGroupTR/providers/Microsoft.Insights/actionGroups/github-actions-alerts"
+          else
+            echo "✅ Alert 'High Latency Alert' already exists, skipping creation."
+          fi
 
-           - name: Create Azure Monitor Alerts
-            run: |
-              if ! az monitor metrics alert list --resource-group myResourceGroupTR --query "[?name=='High Latency Alert']" --output tsv | grep -q "High Latency Alert"; then
-                echo "🚀 Creating High Latency Alert"
-                az monitor metrics alert create \
-                  --name "High Latency Alert" \
-                  --resource-group myResourceGroupTR \
-                  --scopes "/subscriptions/2204702F-2344-4AD7-ACC5-63B9DAEA47DE/resourceGroups/myResourceGroupTR/providers/Microsoft.Web/sites/my-fastapi-websocket-app" \
-                  --condition "avg HttpResponseTime > 500" \
-                  --description "🚨 يتم تشغيل التنبيه عندما يتجاوز زمن الاستجابة 500 مللي ثانية" \
-                  --window-size 5m \
-                  --evaluation-frequency 1m \
-                  --action-group "/subscriptions/2204702F-2344-4AD7-ACC5-63B9DAEA47DE/resourceGroups/myResourceGroupTR/providers/Microsoft.Insights/actionGroups/github-actions-alerts"
-              else
-                echo "✅ Alert 'High Latency Alert' already exists, skipping creation."
-              fi
 
 
       # ✅ تسجيل نجاح العملية
