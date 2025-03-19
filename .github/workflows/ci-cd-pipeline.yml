@@ -22,24 +22,24 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 🔹 Log in to DockerHub
+      # 🔹 تسجيل الدخول إلى DockerHub
       - name: Log in to DockerHub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 🔹 Build & Push to DockerHub
+      # 🔹 بناء الصورة ودفعها إلى DockerHub
       - name: Build and push Docker image to DockerHub
         run: |
           docker build -t maiabdelfata7/fastapi-websocket .
           docker push maiabdelfata7/fastapi-websocket
 
-      # 🔹 Log in to Azure Container Registry (ACR)
+      # 🔹 تسجيل الدخول إلى Azure Container Registry (ACR)
       - name: Log in to ACR
         run: echo ${{ secrets.ACR_PASSWORDTR }} | docker login myacrTR202.azurecr.io -u ${{ secrets.ACR_USERNAMETR }} --password-stdin
 
-      # 🔹 Build & Push to ACR
+      # 🔹 بناء الصورة ودفعها إلى ACR
       - name: Build and push Docker image to ACR
         run: |
           docker build -t myacrTR202.azurecr.io/fastapi-websocket:latest .
@@ -58,13 +58,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 🔹 Set up Terraform
+      # 🔹 إعداد Terraform
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: latest
 
-     # 🔹 Azure Login
+      # 🔹 تسجيل الدخول إلى Azure
       - name: Log in to Azure
         uses: azure/login@v1
         with:
@@ -72,20 +72,20 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }} 
 
-      # 🔹 Ensure Resource Group & ACR exist
+      # 🔹 التحقق من وجود مجموعة الموارد و ACR
       - name: Check if Resource Group & ACR exist
         run: |
           az group show --name myResourceGroupTR || az group create --name myResourceGroupTR --location "West Europe"
           az acr show --name myacrTR202 || az acr create --resource-group myResourceGroupTR --name myacrTR202 --sku Basic
 
-      # 🔹 Terraform Init & Apply
+      # 🔹 تنفيذ Terraform
       - name: Terraform init and apply
         working-directory: terraform
         run: |
           terraform init
           terraform apply -auto-approve -var "Subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
-      # 🔹 Deploy Web App on Azure App Service
+      # 🔹 نشر التطبيق على Azure App Service
       - name: Deploy Web App on Azure App Service
         run: |
           az webapp config container set \
@@ -96,6 +96,7 @@ jobs:
             --docker-registry-server-user ${{ secrets.ACR_USERNAMETR }} \
             --docker-registry-server-password ${{ secrets.ACR_PASSWORDTR }}
 
+      # 🔹 تفعيل Health Check
       - name: Enable Health Check
         run: |
           az webapp config set \
@@ -103,70 +104,59 @@ jobs:
             --name my-fastapi-websocket-app \
             --generic-configurations "{'healthCheckPath':'/'}"
 
-
-
-    
-
-   # 🔹 Enable Workspace-based Application Insights
+      # 🔹 تفعيل Application Insights
       - name: Enable Application Insights
         run: |
-            az monitor app-insights component create \
-            --app my-fastapi-websocket-app-insights \
-            --location "West Europe" \
-            --resource-group myResourceGroupTR \
-            --kind web \
-            --application-type web \
-            --workspace "/subscriptions/2204702f-2344-4ad7-acc5-63b9daea47de/resourceGroups/myResourceGroupTR/providers/Microsoft.OperationalInsights/workspaces/my-workspaceTR"      
+          az monitor app-insights component create \
+          --app my-fastapi-websocket-app-insights \
+          --location "West Europe" \
+          --resource-group myResourceGroupTR \
+          --kind web \
+          --application-type web \
+          --workspace "/subscriptions/2204702f-2344-4ad7-acc5-63b9daea47de/resourceGroups/myResourceGroupTR/providers/Microsoft.OperationalInsights/workspaces/my-workspaceTR"
 
-      # 🔹 Get Application Insights Connection String
-      - name: Get Application Insights Connection String
+      # 🔹 إنشاء تنبيهات لمراقبة التطبيق
+      - name: Create Azure Monitor Alerts
         run: |
-          CONNECTION_STRING=$(az monitor app-insights component show \
-            --app my-fastapi-websocket-app-insights \
+          # 🔥 إنشاء تنبيه لارتفاع زمن الاستجابة
+          az monitor metrics alert create \
+            --name "High Latency Alert" \
             --resource-group myResourceGroupTR \
-            --query connectionString \
-            --output tsv)
-          echo "CONNECTION_STRING=$CONNECTION_STRING" >> $GITHUB_ENV
-      
-      # 🔹 Set Application Insights Configuration in Web App
-      - name: Set App Settings
-        run: |
-          az webapp config appsettings set \
+            --scopes "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.Web/sites/my-fastapi-websocket-app" \
+            --condition "avg HttpResponseTime > 500" \
+            --description "يتم تشغيل التنبيه عندما يتجاوز زمن الاستجابة 500 مللي ثانية" \
+            --window-size 5m \
+            --evaluation-frequency 1m \
+            --action-group "github-actions-alerts"
+
+          # ❌ إنشاء تنبيه لفشل WebSocket
+          az monitor metrics alert create \
+            --name "WebSocket Failures" \
             --resource-group myResourceGroupTR \
-            --name my-fastapi-websocket-app \
-            --settings APPLICATIONINSIGHTS_CONNECTION_STRING=$CONNECTION_STRING
-      
-      # 🔹 Verify Application Insights Creation
-      - name: Verify Application Insights Creation
-        run: |
-          az monitor app-insights component show \
-            --app my-fastapi-websocket-app-insights \
-            --resource-group myResourceGroupTR || echo "⚠️ Application Insights creation failed!"
-      
-      # 🔹 Verify App Insights Connection String Set
-      - name: Verify App Insights Connection String Set
-        run: |
-          az webapp config appsettings list \
+            --scopes "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.Web/sites/my-fastapi-websocket-app" \
+            --condition "total RequestsFailed > 3" \
+            --description "يتم تشغيل التنبيه عند حدوث أكثر من 3 حالات فشل WebSocket في 5 دقائق" \
+            --window-size 5m \
+            --evaluation-frequency 1m \
+            --action-group "github-actions-alerts"
+
+          # 🚨 إنشاء تنبيه لانقطاع الخدمة (Downtime)
+          az monitor metrics alert create \
+            --name "Downtime Alert" \
             --resource-group myResourceGroupTR \
-            --name my-fastapi-websocket-app \
-            --query "[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']" || echo "⚠️ App Insights connection string not found!"
-      
-      # ✅ Log Success Message
+            --scopes "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.Web/sites/my-fastapi-websocket-app" \
+            --condition "total AvailabilityTestsFailed > 1" \
+            --description "يتم تشغيل التنبيه عندما يكون التطبيق غير متاح لمدة دقيقتين" \
+            --window-size 2m \
+            --evaluation-frequency 1m \
+            --action-group "github-actions-alerts"
+
+      # 🔹 التحقق من إنشاء التنبيهات
+      - name: Verify Azure Monitor Alerts
+        run: |
+          az monitor metrics alert list --resource-group myResourceGroupTR
+
+      # ✅ تسجيل نجاح العملية
       - name: Log Success Message
-        run: echo "✅ Application Insights successfully configured with Connection String!"
+        run: echo "✅ تم إنشاء التنبيهات بنجاح في Azure Monitor!"
 
-
-
-
-
-         # az webapp config appsettings list \
-          #  --resource-group myResourceGroupTR \
-           # --name my-fastapi-websocket-app \
-            #--query "[?name=='APPINSIGHTS_INSTRUMENTATIONKEY']"
-
-
-
-         # az webapp config appsettings set \
-          #  --resource-group myResourceGroupTR \
-           # --name my-fastapi-websocket-app \
-            #--settings APPINSIGHTS_INSTRUMENTATIONKEY=b71cb53d-0a51-4bc3-86a7-a1735dd72049
