@@ -11,7 +11,11 @@ RUN apt update && apt upgrade -y && apt install -y \
     && apt remove --purge -y perl-base \
     && apt autoremove -y && apt clean \
     && rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir --upgrade setuptools==70.0.0  
+    
+RUN apt-get purge --auto-remove -y perl-base
+RUN pip install --no-cache-dir --upgrade setuptools==70.0.0 
+RUN apt install -y zlib-ng
+RUN ln -sf /usr/lib/x86_64-linux-gnu/libz-ng.so.2 /usr/lib/x86_64-linux-gnu/libz.so.1
 RUN pip install --no-cache-dir -r requirements.txt
 
 ENV PORT=80
