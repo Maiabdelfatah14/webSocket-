@@ -34,7 +34,7 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         connected_clients.discard(websocket)  # استخدام discard لتجنب الخطأ إذا لم يكن موجودًا
 
-@app.get("/health")
+@app.get("/")
 async def health_check():
     return {"status": "healthy"}
 
