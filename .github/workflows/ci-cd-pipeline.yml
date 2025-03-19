@@ -130,14 +130,15 @@ jobs:
             --name myAppServicePlan \
             --resource-group myResourceGroupTR \
             --sku S1
-          
-          az monitor autoscale create \
-            --resource-group myResourceGroupTR \
-            --name websocket-autoscale \
-            --target "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.Web/serverfarms/myAppServicePlan" \
-            --min-count 1 \
-            --max-count 5 \
-            --count 2
+
+           az monitor autoscale create \
+              --resource-group myResourceGroupTR \
+              --name websocket-autoscale \
+              --resource "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.Web/serverfarms/myAppServicePlan" \
+              --min-count 1 \
+              --max-count 5 \
+              --count 2
+
 
           az monitor autoscale rule create \
             --resource-group myResourceGroupTR \
