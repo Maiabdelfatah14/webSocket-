@@ -154,6 +154,24 @@ jobs:
           fi
 
 
+      # ❌ إنشاء التنبيه لفشل WebSocket إذا لم يكن موجودًا
+      - name: إنشاء تنبيه لفشل WebSocket (إذا لم يكن موجودًا)
+        run: |
+          if ! az monitor metrics alert list --resource-group myResourceGroupTR --query "[?name=='WebSocket Failures']" --output tsv | grep -q "WebSocket Failures"; then
+            echo "🚀 إنشاء تنبيه لفشل WebSocket"
+            az monitor metrics alert create \
+              --name "WebSocket Failures" \
+              --resource-group myResourceGroupTR \
+              --scopes "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.Web/sites/my-fastapi-websocket-app" \
+              --condition "total RequestsFailed > 3" \
+              --description "🚨 يتم تشغيل التنبيه عند حدوث أكثر من 3 حالات فشل WebSocket خلال 5 دقائق" \
+              --window-size 5m \
+              --evaluation-frequency 1m \
+              --action "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.Insights/actionGroups/github-actions-alerts"
+          else
+            echo "✅ التنبيه 'WebSocket Failures' موجود مسبقًا، يتم تخطي الإنشاء."
+          fi
+
 
 
       # ✅ تسجيل نجاح العملية
