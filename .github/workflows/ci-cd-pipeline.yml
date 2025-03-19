@@ -134,7 +134,7 @@ jobs:
           az monitor autoscale create \
             --resource-group myResourceGroupTR \
             --name websocket-autoscale \
-            --resource-id "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.Web/serverfarms/myAppServicePlan" \
+            --resource myAppServicePlan \
             --min-count 1 \
             --max-count 5 \
             --count 2
@@ -150,4 +150,5 @@ jobs:
             --autoscale-name websocket-autoscale \
             --condition "Percentage CPU < 30 avg 5m" \
             --scale in 1
+
       
