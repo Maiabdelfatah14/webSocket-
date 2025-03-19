@@ -142,14 +142,15 @@ jobs:
           az monitor autoscale rule create \
             --resource-group myResourceGroupTR \
             --autoscale-name websocket-autoscale \
-            --condition "Percentage CPU > 70 avg 5m" \
+            --condition "CpuPercentage > 70 avg 5m" \
             --scale out 1 
-      
+          
           az monitor autoscale rule create \
             --resource-group myResourceGroupTR \
             --autoscale-name websocket-autoscale \
-            --condition "Percentage CPU < 30 avg 5m" \
+            --condition "CpuPercentage < 30 avg 5m" \
             --scale in 1
+
       
 
       
