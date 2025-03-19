@@ -116,46 +116,42 @@ jobs:
           --workspace "/subscriptions/2204702f-2344-4ad7-acc5-63b9daea47de/resourceGroups/myResourceGroupTR/providers/Microsoft.OperationalInsights/workspaces/my-workspaceTR"
 
 
-        # 🔹 إنشاء تنبيهات لمراقبة التطبيق
-      - name: Create Azure Monitor Alerts
+
+
+
+
+
+     # 🔹 إنشاء مجموعة إجراءات للتنبيهات (Action Group) إذا لم تكن موجودة
+      - name: Create Azure Monitor Action Group (if not exists)
         run: |
-          az monitor metrics alert create \
-            --name "High Latency Alert" \
-            --resource-group myResourceGroupTR \
-            --scopes "/subscriptions/2204702F-2344-4AD7-ACC5-63B9DAEA47DE/resourceGroups/myResourceGroupTR/providers/Microsoft.Web/sites/my-fastapi-websocket-app" \
-            --condition "avg HttpResponseTime > 500" \
-            --description "🚨 يتم تشغيل التنبيه عندما يتجاوز زمن الاستجابة 500 مللي ثانية" \
-            --window-size 5m \
-            --evaluation-frequency 1m \
-            --action "/subscriptions/2204702F-2344-4AD7-ACC5-63B9DAEA47DE/resourceGroups/myResourceGroupTR/providers/Microsoft.Insights/actionGroups/github-actions-alerts"
-     
+          if ! az monitor action-group list --resource-group myResourceGroupTR --query "[?name=='github-actions-alerts']" --output tsv | grep -q "github-actions-alerts"; then
+            echo "🚀 Creating Action Group: github-actions-alerts"
+            az monitor action-group create \
+              --resource-group myResourceGroupTR \
+              --name github-actions-alerts \
+              --short-name GHAlerts \
+              --action email admin maiabdelfatah077@gmail.com
+          else
+            echo "✅ Action Group github-actions-alerts already exists, skipping creation."
+          fi
 
-          # ❌ إنشاء تنبيه لفشل WebSocket
-          az monitor metrics alert create \
-            --name "WebSocket Failures" \
-            --resource-group myResourceGroupTR \
-            --scopes "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.Web/sites/my-fastapi-websocket-app" \
-            --condition "total RequestsFailed > 3" \
-            --description "يتم تشغيل التنبيه عند حدوث أكثر من 3 حالات فشل WebSocket في 5 دقائق" \
-            --window-size 5m \
-            --evaluation-frequency 1m \
-            --action-group "github-actions-alerts"
+           - name: Create Azure Monitor Alerts
+            run: |
+              if ! az monitor metrics alert list --resource-group myResourceGroupTR --query "[?name=='High Latency Alert']" --output tsv | grep -q "High Latency Alert"; then
+                echo "🚀 Creating High Latency Alert"
+                az monitor metrics alert create \
+                  --name "High Latency Alert" \
+                  --resource-group myResourceGroupTR \
+                  --scopes "/subscriptions/2204702F-2344-4AD7-ACC5-63B9DAEA47DE/resourceGroups/myResourceGroupTR/providers/Microsoft.Web/sites/my-fastapi-websocket-app" \
+                  --condition "avg HttpResponseTime > 500" \
+                  --description "🚨 يتم تشغيل التنبيه عندما يتجاوز زمن الاستجابة 500 مللي ثانية" \
+                  --window-size 5m \
+                  --evaluation-frequency 1m \
+                  --action-group "/subscriptions/2204702F-2344-4AD7-ACC5-63B9DAEA47DE/resourceGroups/myResourceGroupTR/providers/Microsoft.Insights/actionGroups/github-actions-alerts"
+              else
+                echo "✅ Alert 'High Latency Alert' already exists, skipping creation."
+              fi
 
-          # 🚨 إنشاء تنبيه لانقطاع الخدمة (Downtime)
-          az monitor metrics alert create \
-            --name "Downtime Alert" \
-            --resource-group myResourceGroupTR \
-            --scopes "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.Web/sites/my-fastapi-websocket-app" \
-            --condition "total AvailabilityTestsFailed > 1" \
-            --description "يتم تشغيل التنبيه عندما يكون التطبيق غير متاح لمدة دقيقتين" \
-            --window-size 2m \
-            --evaluation-frequency 1m \
-            --action-group "github-actions-alerts"
-
-      # 🔹 التحقق من إنشاء التنبيهات
-      - name: Verify Azure Monitor Alerts
-        run: |
-          az monitor metrics alert list --resource-group myResourceGroupTR
 
       # ✅ تسجيل نجاح العملية
       - name: Log Success Message
