@@ -123,31 +123,31 @@ jobs:
             --name my-fastapi-websocket-app \
             --always-on true
 
-      # 🔹 Configure Auto-Scaling for WebSocket connections
+    # 🔹 Configure Auto-Scaling for WebSocket connections
       - name: Configure Auto-Scaling for WebSocket connections
         run: |
           az appservice plan update \
             --name myAppServicePlan \
             --resource-group myResourceGroupTR \
             --sku S1
-
-           az monitor autoscale create \
-              --resource-group myResourceGroupTR \
-              --name websocket-autoscale \
-              --resource "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.Web/serverfarms/myAppServicePlan" \
-              --min-count 1 \
-              --max-count 5 \
-              --count 2
-
-
+      
+          az monitor autoscale create \
+            --resource-group myResourceGroupTR \
+            --name websocket-autoscale \
+            --resource-id "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.Web/serverfarms/myAppServicePlan" \
+            --min-count 1 \
+            --max-count 5 \
+            --count 2
+      
           az monitor autoscale rule create \
             --resource-group myResourceGroupTR \
             --autoscale-name websocket-autoscale \
-            --condition "avg Requests > 1000" \
-            --scale out 1
-
+            --condition "Percentage CPU > 70 avg 5m" \
+            --scale out 1 
+      
           az monitor autoscale rule create \
             --resource-group myResourceGroupTR \
             --autoscale-name websocket-autoscale \
-            --condition "avg Requests < 500" \
+            --condition "Percentage CPU < 30 avg 5m" \
             --scale in 1
+      
