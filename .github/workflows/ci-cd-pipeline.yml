@@ -115,19 +115,20 @@ jobs:
           --application-type web \
           --workspace "/subscriptions/2204702f-2344-4ad7-acc5-63b9daea47de/resourceGroups/myResourceGroupTR/providers/Microsoft.OperationalInsights/workspaces/my-workspaceTR"
 
-      # 🔹 إنشاء تنبيهات لمراقبة التطبيق
+
+        # 🔹 إنشاء تنبيهات لمراقبة التطبيق
       - name: Create Azure Monitor Alerts
         run: |
-          # 🔥 إنشاء تنبيه لارتفاع زمن الاستجابة
           az monitor metrics alert create \
             --name "High Latency Alert" \
             --resource-group myResourceGroupTR \
-            --scopes "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.Web/sites/my-fastapi-websocket-app" \
+            --scopes "/subscriptions/2204702F-2344-4AD7-ACC5-63B9DAEA47DE/resourceGroups/myResourceGroupTR/providers/Microsoft.Web/sites/my-fastapi-websocket-app" \
             --condition "avg HttpResponseTime > 500" \
-            --description "يتم تشغيل التنبيه عندما يتجاوز زمن الاستجابة 500 مللي ثانية" \
+            --description "🚨 يتم تشغيل التنبيه عندما يتجاوز زمن الاستجابة 500 مللي ثانية" \
             --window-size 5m \
             --evaluation-frequency 1m \
-            --action-group "github-actions-alerts"
+            --action "/subscriptions/2204702F-2344-4AD7-ACC5-63B9DAEA47DE/resourceGroups/myResourceGroupTR/providers/Microsoft.Insights/actionGroups/github-actions-alerts"
+     
 
           # ❌ إنشاء تنبيه لفشل WebSocket
           az monitor metrics alert create \
