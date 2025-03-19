@@ -102,3 +102,27 @@ jobs:
             --resource-group myResourceGroupTR \
             --name my-fastapi-websocket-app \
             --generic-configurations "{'healthCheckPath':'/health'}"
+
+
+
+
+
+    # 🔹 Enable Application Insights for Monitoring
+      - name: Enable Application Insights
+        run: |
+          az monitor app-insights component create \
+            --app my-fastapi-websocket-app-insights \
+            --location "West Europe" \
+            --resource-group myResourceGroupTR \
+            --kind web \
+            --application-type web
+
+          az webapp config appsettings set \
+            --resource-group myResourceGroupTR \
+            --name my-fastapi-websocket-app \
+            --settings \
+              APPINSIGHTS_INSTRUMENTATIONKEY=$(az monitor app-insights component show \
+                --app my-fastapi-websocket-app-insights \
+                --resource-group myResourceGroupTR \
+                --query instrumentationKey \
+                --output tsv)
