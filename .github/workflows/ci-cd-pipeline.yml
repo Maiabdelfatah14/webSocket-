@@ -121,7 +121,7 @@ jobs:
 
 
 
-     # 🔹 إنشاء مجموعة إجراءات للتنبيهات (Action Group) إذا لم تكن موجودة
+    # 🔹 إنشاء مجموعة إجراءات للتنبيهات (Action Group) إذا لم تكن موجودة
       - name: Create Azure Monitor Action Group (if not exists)
         run: |
           if ! az monitor action-group list --resource-group myResourceGroupTR --query "[?name=='github-actions-alerts']" --output tsv | grep -q "github-actions-alerts"; then
@@ -148,10 +148,11 @@ jobs:
               --description "🚨 يتم تشغيل التنبيه عندما يتجاوز زمن الاستجابة 500 مللي ثانية" \
               --window-size 5m \
               --evaluation-frequency 1m \
-              --action-group "/subscriptions/2204702F-2344-4AD7-ACC5-63B9DAEA47DE/resourceGroups/myResourceGroupTR/providers/Microsoft.Insights/actionGroups/github-actions-alerts"
+              --actions "/subscriptions/2204702F-2344-4AD7-ACC5-63B9DAEA47DE/resourceGroups/myResourceGroupTR/providers/Microsoft.Insights/actionGroups/github-actions-alerts"
           else
             echo "✅ Alert 'High Latency Alert' already exists, skipping creation."
           fi
+
 
 
 
