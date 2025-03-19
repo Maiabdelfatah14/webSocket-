@@ -117,13 +117,51 @@ jobs:
             --kind web \
             --application-type web
 
-          az webapp config appsettings set \
+      - name: Get Application Insights Key
+        run: |
+          INSTRUMENTATION_KEY=$(az monitor app-insights component show \
+            --app my-fastapi-websocket-app-insights \
+            --resource-group myResourceGroupTR \
+            --query instrumentationKey \
+            --output tsv)
+          echo "INSTRUMENTATION_KEY=$INSTRUMENTATION_KEY" >> $GITHUB_ENV
+
+      - name: Set App Settings
+        run: |
+                az webapp config appsettings set \
+                  --resource-group myResourceGroupTR \
+                  --name my-fastapi-websocket-app \
+                  --settings APPINSIGHTS_INSTRUMENTATIONKEY=$INSTRUMENTATION_KEY
+
+      - name: Verify Application Insights Creation
+        run: |
+          az monitor app-insights component show \
+            --app my-fastapi-websocket-app-insights \
+            --resource-group myResourceGroupTR || echo "⚠️ Application Insights creation failed!"
+
+
+      - name: Verify App Insights Key Set
+        run: |
+          az webapp config appsettings list \
             --resource-group myResourceGroupTR \
             --name my-fastapi-websocket-app \
-            --settings APPINSIGHTS_INSTRUMENTATIONKEY=b71cb53d-0a51-4bc3-86a7-a1735dd72049
+            --query "[?name=='APPINSIGHTS_INSTRUMENTATIONKEY']" || echo "⚠️ App Insights key not found!"
 
-          az webapp config appsettings list \
-              --resource-group myResourceGroupTR \
-              --name my-fastapi-websocket-app \
-              --query "[?name=='APPINSIGHTS_INSTRUMENTATIONKEY']"  
-    
+      - name: Log Success Message
+        run: echo "✅ Application Insights successfully configured!"
+
+
+
+
+
+         # az webapp config appsettings list \
+          #  --resource-group myResourceGroupTR \
+           # --name my-fastapi-websocket-app \
+            #--query "[?name=='APPINSIGHTS_INSTRUMENTATIONKEY']"
+
+
+
+         # az webapp config appsettings set \
+          #  --resource-group myResourceGroupTR \
+           # --name my-fastapi-websocket-app \
+            #--settings APPINSIGHTS_INSTRUMENTATIONKEY=b71cb53d-0a51-4bc3-86a7-a1735dd72049
