@@ -105,7 +105,7 @@ jobs:
 
 
 
-
+    
 
     # 🔹 Enable Application Insights for Monitoring
       - name: Enable Application Insights
@@ -120,9 +120,10 @@ jobs:
           az webapp config appsettings set \
             --resource-group myResourceGroupTR \
             --name my-fastapi-websocket-app \
-            --settings \
-              APPINSIGHTS_INSTRUMENTATIONKEY=$(az monitor app-insights component show \
-                --app my-fastapi-websocket-app-insights \
-                --resource-group myResourceGroupTR \
-                --query instrumentationKey \
-                --output tsv)
+            --settings APPINSIGHTS_INSTRUMENTATIONKEY= b71cb53d-0a51-4bc3-86a7-a1735dd72049
+
+          az webapp config appsettings list \
+              --resource-group myResourceGroupTR \
+              --name my-fastapi-websocket-app \
+              --query "[?name=='APPINSIGHTS_INSTRUMENTATIONKEY']"  
+    
