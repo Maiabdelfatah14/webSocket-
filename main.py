@@ -15,7 +15,7 @@ stocks = ["AAPL", "GOOGL", "AMZN", "MSFT"]
 
 @app.get("/")
 def home():
-    return {"message": "🚀 WebSocket server is running!"}
+    return {"message": "🚀 WebSocket server is running!", "status": "healthy"}
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
