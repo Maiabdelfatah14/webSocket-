@@ -209,15 +209,11 @@ jobs:
             --resource-group myResourceGroupTR \
             --name my-fastapi-websocket-app \
             --always-on true
-
-      - name: Configure Auto-Healing for App Service
-        run: |
+      
           az webapp config set \
             --resource-group myResourceGroupTR \
             --name my-fastapi-websocket-app \
-            --generic-configurations "{'autoHealEnabled':true,'autoHealRules':{'triggers':{'statusCodes':[{'count':5,'interval':'PT1M','statusCodeRange':'500-599'}]},'actions':{'actionType':'Recycle'}}}"
+            --generic-configurations "{\"autoHealEnabled\": true, \"autoHealRules\": {\"triggers\": {\"statusCodes\": [{\"count\": 5, \"interval\": \"PT1M\", \"statusCodeRange\": \"500-599\"}]}, \"actions\": {\"actionType\": \"Recycle\"}}}"
 
 
-
-
-          
+            
