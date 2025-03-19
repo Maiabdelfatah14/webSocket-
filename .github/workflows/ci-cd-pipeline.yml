@@ -191,8 +191,6 @@ jobs:
             echo "✅ التنبيه 'WebSocket Failures' موجود مسبقًا، يتم تخطي الإنشاء."
           fi
 
- 
-
       # ✅ تسجيل نجاح العملية
       - name: Log Success Message
         run: echo "✅ تم إنشاء التنبيهات بنجاح في Azure Monitor!"
@@ -201,3 +199,17 @@ jobs:
       - name: Verify Azure Monitor Alerts
         run: |
           az monitor metrics alert list --resource-group myResourceGroupTR --output table
+
+
+
+
+      - name: Enable Auto-Restart on Failure
+        run: |
+          az webapp config set \
+            --resource-group myResourceGroupTR \
+            --name my-fastapi-websocket-app \
+            --always-on true
+
+
+
+          
