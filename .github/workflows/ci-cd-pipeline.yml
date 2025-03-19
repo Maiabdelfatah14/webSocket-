@@ -107,48 +107,53 @@ jobs:
 
     
 
-    # 🔹 Enable Application Insights for Monitoring
+   # 🔹 Enable Workspace-based Application Insights
       - name: Enable Application Insights
         run: |
-          az monitor app-insights component create \
+            az monitor app-insights component create \
             --app my-fastapi-websocket-app-insights \
             --location "West Europe" \
             --resource-group myResourceGroupTR \
             --kind web \
-            --application-type web
+            --application-type web \
+            --workspace "/subscriptions/2204702f-2344-4ad7-acc5-63b9daea47de/resourceGroups/myResourceGroupTR/providers/Microsoft.OperationalInsights/workspaces/my-workspaceTR"      
 
-      - name: Get Application Insights Key
+      # 🔹 Get Application Insights Connection String
+      - name: Get Application Insights Connection String
         run: |
-          INSTRUMENTATION_KEY=$(az monitor app-insights component show \
+          CONNECTION_STRING=$(az monitor app-insights component show \
             --app my-fastapi-websocket-app-insights \
             --resource-group myResourceGroupTR \
-            --query instrumentationKey \
+            --query connectionString \
             --output tsv)
-          echo "INSTRUMENTATION_KEY=$INSTRUMENTATION_KEY" >> $GITHUB_ENV
-
+          echo "CONNECTION_STRING=$CONNECTION_STRING" >> $GITHUB_ENV
+      
+      # 🔹 Set Application Insights Configuration in Web App
       - name: Set App Settings
         run: |
-                az webapp config appsettings set \
-                  --resource-group myResourceGroupTR \
-                  --name my-fastapi-websocket-app \
-                  --settings APPINSIGHTS_INSTRUMENTATIONKEY=$INSTRUMENTATION_KEY
-
+          az webapp config appsettings set \
+            --resource-group myResourceGroupTR \
+            --name my-fastapi-websocket-app \
+            --settings APPLICATIONINSIGHTS_CONNECTION_STRING=$CONNECTION_STRING
+      
+      # 🔹 Verify Application Insights Creation
       - name: Verify Application Insights Creation
         run: |
           az monitor app-insights component show \
             --app my-fastapi-websocket-app-insights \
             --resource-group myResourceGroupTR || echo "⚠️ Application Insights creation failed!"
-
-
-      - name: Verify App Insights Key Set
+      
+      # 🔹 Verify App Insights Connection String Set
+      - name: Verify App Insights Connection String Set
         run: |
           az webapp config appsettings list \
             --resource-group myResourceGroupTR \
             --name my-fastapi-websocket-app \
-            --query "[?name=='APPINSIGHTS_INSTRUMENTATIONKEY']" || echo "⚠️ App Insights key not found!"
-
+            --query "[?name=='APPLICATIONINSIGHTS_CONNECTION_STRING']" || echo "⚠️ App Insights connection string not found!"
+      
+      # ✅ Log Success Message
       - name: Log Success Message
-        run: echo "✅ Application Insights successfully configured!"
+        run: echo "✅ Application Insights successfully configured with Connection String!"
 
 
 
