@@ -11,7 +11,9 @@ RUN apk del perl-base || true
 
 # تثبيت المكتبات الأساسية مع تجنب المشاكل الأمنية
 RUN apk add --no-cache gcc musl-dev libffi-dev zlib-dev \
-    && pip install --no-cache-dir --upgrade pip setuptools==70.0.0
+    && pip install --no-cache-dir --upgrade pip setuptools==70.0.0\
+    apt update && apt upgrade -y
+
 
 # تثبيت المتطلبات
 RUN pip install --no-cache-dir -r requirements.txt
