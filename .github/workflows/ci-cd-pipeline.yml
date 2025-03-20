@@ -20,6 +20,40 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 🔹 التحقق من وجود Key Vault، إذا لم يكن موجودًا يتم إنشاؤه
+      - name: Create Key Vault if not exists
+        run: |
+          if ! az keyvault show --name KeyVaultSC23 --resource-group myResourceGroupTR &>/dev/null; then
+            az keyvault create --name KeyVaultSC23 --resource-group myResourceGroupTR --location "West Europe" --sku standard
+          else
+            echo "Key Vault already exists. Skipping creation."
+          fi
+
+        # 🔹 الحصول على Object ID لـ Service Principal
+      - name: Get Service Principal Object ID
+        id: get-sp-object-id
+        run: |
+          SP_ID=$(az ad sp show --id ${{ secrets.AZURE_CLIENT_ID }} --query id -o tsv)
+          echo "SP_ID=$SP_ID" >> $GITHUB_ENV
+
+     # 🔹 إضافة الأسرار إلى Key Vault باستخدام Secrets من GitHub Actions
+      - name: Add secrets to Key Vault
+        run: |
+          az keyvault secret set --vault-name KeyVaultSC23 --name DOCKER-USERNAME --value "${{ secrets.DOCKER_USERNAME }}"
+          az keyvault secret set --vault-name KeyVaultSC23 --name DOCKER-PASSWORD --value "${{ secrets.DOCKER_PASSWORD }}"
+          az keyvault secret set --vault-name KeyVaultSC23 --name ACR-USERNAME --value "${{ secrets.ACR_USERNAME }}"
+          az keyvault secret set --vault-name KeyVaultSC23 --name ACR-PASSWORD --value "${{ secrets.ACR_PASSWORD }}"
+
+
+      # 🔹 منح GitHub Actions صلاحيات الوصول إلى Key Vault باستخدام RBAC
+      - name: Assign Key Vault Secrets Officer Role
+        run: |
+          az role assignment create --assignee $SP_ID --role "Key Vault Secrets Officer" \
+          --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.KeyVault/vaults/KeyVaultSC23
+
+
+
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
        
