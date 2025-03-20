@@ -92,6 +92,26 @@ resource "azurerm_linux_web_app" "web_app" {
 
 
 
+
+
+resource "azurerm_virtual_network" "vnet" {
+  name                = "my-vnet"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "private_subnet" {
+  name                 = "private-endpoint-subnet"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  enforce_private_link_endpoint_network_policies = true
+}
+
+
+
 resource "azurerm_private_endpoint" "acr_private_endpoint" {
   name                = "acr-private-endpoint"
   location            = azurerm_resource_group.rg.location
@@ -105,4 +125,5 @@ resource "azurerm_private_endpoint" "acr_private_endpoint" {
     is_manual_connection           = false
   }
 }
+
 
