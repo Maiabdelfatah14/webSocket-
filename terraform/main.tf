@@ -24,11 +24,10 @@ data "azurerm_container_registry" "existing_acr" {
 }
 
 resource "azurerm_container_registry" "my_acr" {
-  count               = length(data.azurerm_container_registry.existing_acr.id) > 0 ? 0 : 1
   name                = "myacrTR202"
   resource_group_name = "myResourceGroupTR"
   location            = "West Europe"
-  sku                 = "Premium"  # ✅ Make sure this is Premium
+  sku                 = "Premium"  # ✅ Ensure this is set to Premium
 
   identity {
     type = "SystemAssigned"
@@ -37,6 +36,13 @@ resource "azurerm_container_registry" "my_acr" {
   tags = {
     environment = "production"
   }
+
+  lifecycle {
+    create_before_destroy = true
+    ignore_changes        = [tags]
+  }
+}
+
 
   lifecycle {
     create_before_destroy = true  # ✅ Ensures no downtime when upgrading SKU
