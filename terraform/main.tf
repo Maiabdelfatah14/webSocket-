@@ -67,7 +67,7 @@ resource "azurerm_linux_web_app" "web_app" {
   site_config {
     application_stack {
       docker_image_name = "${coalesce(
-        try(azurerm_container_registry.my_acr.login_server, null), 
+        try(azurerm_container_registry.my_acr[0].login_server, null), 
         try(data.azurerm_container_registry.existing_acr.login_server, "")
       )}/fastapi-websocket:latest"
     }
@@ -83,18 +83,6 @@ resource "azurerm_linux_web_app" "web_app" {
 }
 
 # 🔹 Private Endpoint Setup
-data "azurerm_virtual_network" "existing_vnet" {
-  name                = "my-vnet"
-  resource_group_name = "myResourceGroupTR"
-}
-
-data "azurerm_subnet" "existing_private_subnet" {
-  count                = length(try(data.azurerm_virtual_network.existing_vnet[*].name, [])) > 0 ? 1 : 0
-  name                 = "private-endpoint-subnet"
-  resource_group_name  = "myResourceGroupTR"
-  virtual_network_name = try(data.azurerm_virtual_network.existing_vnet.name, "")
-}
-
 resource "azurerm_private_endpoint" "acr_private_endpoint" {
   count               = length(try(data.azurerm_subnet.existing_private_subnet[*].name, [])) > 0 ? 1 : 0
   name                = "acr-private-endpoint"
@@ -105,7 +93,7 @@ resource "azurerm_private_endpoint" "acr_private_endpoint" {
   private_service_connection {
     name                           = "acr-privatelink"
     private_connection_resource_id = coalesce(
-      try(azurerm_container_registry.my_acr.id, null), 
+      try(azurerm_container_registry.my_acr[0].id, null), 
       try(data.azurerm_container_registry.existing_acr.id, null)
     )
     subresource_names              = ["registry"]
