@@ -101,29 +101,30 @@ resource "azurerm_virtual_network" "vnet" {
   address_space       = ["10.0.0.0/16"]
 }
 
+
 resource "azurerm_subnet" "private_subnet" {
   name                 = "private-endpoint-subnet"
   resource_group_name  = "myResourceGroupTR"
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.1.0/24"]
-
-  
 }
+
 
 
 
 resource "azurerm_private_endpoint" "acr_private_endpoint" {
   name                = "acr-private-endpoint"
-  location            = "West Europe"
-  resource_group_name = "myResourceGroupTR"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   subnet_id           = azurerm_subnet.private_subnet.id
 
   private_service_connection {
     name                           = "acr-privatelink"
-    private_connection_resource_id = azurerm_container_registry.my_acr.id
+    private_connection_resource_id = azurerm_container_registry.my_acr[0].id
     subresource_names              = ["registry"]
     is_manual_connection           = false
   }
 }
+
 
 
