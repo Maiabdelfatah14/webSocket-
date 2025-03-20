@@ -19,15 +19,14 @@ resource "azurerm_resource_group" "my_rg" {
 }
 
 # 🔹 Check if ACR exists
-#data "azurerm_container_registry" "existing_acr" {
-  #count               = 1
-  #name                = "myacrTR202"
- # resource_group_name = "myResourceGroupTR"} 
-
+data "azurerm_container_registry" "existing_acr" {
+  name                = "myacrTR202"
+  resource_group_name = "myResourceGroupTR"
+}
 
 # 🔹 Create ACR if it does not exist
 resource "azurerm_container_registry" "my_acr" {
-  #count               = length(try(data.azurerm_container_registry.existing_acr[*].name, [])) > 0 ? 0 : 1
+  count               = length(try(data.azurerm_container_registry.existing_acr[*].name, [])) > 0 ? 0 : 1
   name                = "myacrTR202"
   resource_group_name = "myResourceGroupTR"
   location            = "West Europe"
@@ -60,8 +59,6 @@ resource "azurerm_service_plan" "app_service_plan" {
 
 # 🔹 Fix Web App Reference
 resource "azurerm_linux_web_app" "web_app" {
-  count = 1
-
   name                = "my-fastapi-websocket-app"
   location            = "West Europe"
   resource_group_name = "myResourceGroupTR"
@@ -70,8 +67,8 @@ resource "azurerm_linux_web_app" "web_app" {
   site_config {
     application_stack {
       docker_image_name = "${coalesce(
-        try(azurerm_container_registry.my_acr[0].login_server, null), 
-        try(data.azurerm_container_registry.existing_acr[0].login_server, "")
+        try(azurerm_container_registry.my_acr.login_server, null), 
+        try(data.azurerm_container_registry.existing_acr.login_server, "")
       )}/fastapi-websocket:latest"
     }
   }
@@ -107,7 +104,10 @@ resource "azurerm_private_endpoint" "acr_private_endpoint" {
 
   private_service_connection {
     name                           = "acr-privatelink"
-    private_connection_resource_id = coalesce(try(azurerm_container_registry.my_acr[0].id, null), try(data.azurerm_container_registry.existing_acr[0].id, null))
+    private_connection_resource_id = coalesce(
+      try(azurerm_container_registry.my_acr.id, null), 
+      try(data.azurerm_container_registry.existing_acr.id, null)
+    )
     subresource_names              = ["registry"]
     is_manual_connection           = false
   }
