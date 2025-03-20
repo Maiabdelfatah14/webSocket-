@@ -20,12 +20,21 @@ resource "azurerm_resource_group" "my_rg" {
 
 # 🔹 Check if ACR exists
 data "azurerm_container_registry" "existing_acr" {
+  count               = 1
   name                = "myacrTR202"
   resource_group_name = "myResourceGroupTR"
+
+  lifecycle {
+    postcondition {
+      condition     = self.id != null
+      error_message = "ACR does not exist, continuing with creation..."
+    }
+  }
 }
 
+# 🔹 Create ACR if it does not exist
 resource "azurerm_container_registry" "my_acr" {
-  count               = try(data.azurerm_container_registry.existing_acr.name, null) != null ? 0 : 1
+  count               = length(try(data.azurerm_container_registry.existing_acr[*].name, [])) > 0 ? 0 : 1
   name                = "myacrTR202"
   resource_group_name = "myResourceGroupTR"
   location            = "West Europe"
@@ -44,6 +53,7 @@ resource "azurerm_container_registry" "my_acr" {
     ignore_changes        = [tags]
   }
 }
+
 
 # 🔹 Check if App Service Plan exists
 data "azurerm_service_plan" "existing_app_service_plan" {
