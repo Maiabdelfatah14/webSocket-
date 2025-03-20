@@ -20,13 +20,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 🔹 التحقق من وجود Key Vault، إذا لم يكن موجودًا يتم إنشاؤه
+      # 🔹 تسجيل الدخول إلى Azure باستخدام Service Principal
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # 🔹 إنشاء Key Vault إذا لم يكن موجودًا
       - name: Create Key Vault if not exists
         run: |
           if ! az keyvault show --name KeyVaultSC23 --resource-group myResourceGroupTR &>/dev/null; then
             az keyvault create --name KeyVaultSC23 --resource-group myResourceGroupTR --location "West Europe" --sku standard
-          else
-            echo "Key Vault already exists. Skipping creation."
           fi
 
         # 🔹 الحصول على Object ID لـ Service Principal
