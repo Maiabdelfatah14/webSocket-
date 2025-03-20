@@ -114,13 +114,13 @@ resource "azurerm_subnet" "private_subnet" {
 
 resource "azurerm_private_endpoint" "acr_private_endpoint" {
   name                = "acr-private-endpoint"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = coalesce(try(azurerm_resource_group.my_rg[0].location, ""), data.azurerm_resource_group.existing_rg.location)
+  resource_group_name = coalesce(try(azurerm_resource_group.my_rg[0].name, ""), data.azurerm_resource_group.existing_rg.name)
   subnet_id           = azurerm_subnet.private_subnet.id
 
   private_service_connection {
     name                           = "acr-privatelink"
-    private_connection_resource_id = azurerm_container_registry.my_acr[0].id
+    private_connection_resource_id = coalesce(try(azurerm_container_registry.my_acr[0].id, ""), data.azurerm_container_registry.existing_acr.id)
     subresource_names              = ["registry"]
     is_manual_connection           = false
   }
