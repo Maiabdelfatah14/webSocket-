@@ -42,24 +42,39 @@
     </table>
 
     <script>
-        const ws = new WebSocket("ws://localhost/ws"); // لو على Azure غيّر الرابط
+        const token = "your_generated_jwt_token";  // استبدل التوكن الحقيقي هنا
+        const wsUrl = `wss://your-app.com/ws?token=${token}`;
+        const socket = new WebSocket(wsUrl);
 
-        ws.onmessage = function(event) {
-            const stockData = JSON.parse(event.data);
-            const tableBody = document.getElementById("stockTable");
-            tableBody.innerHTML = ""; // تفريغ الجدول قبل التحديث
-
-            Object.keys(stockData).forEach(stock => {
-                const row = document.createElement("tr");
-                row.innerHTML = `<td>${stock}</td><td>${stockData[stock]}</td>`;
-                tableBody.appendChild(row);
-            });
+        socket.onopen = () => {
+            console.log("✅ تم الاتصال بنجاح مع WebSocket");
         };
 
-        ws.onclose = function() {
-            console.log("WebSocket connection closed");
+        socket.onmessage = (event) => {
+            try {
+                const stockData = JSON.parse(event.data);
+                const tableBody = document.getElementById("stockTable");
+                tableBody.innerHTML = ""; // تفريغ الجدول قبل التحديث
+
+                Object.keys(stockData).forEach(stock => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `<td>${stock}</td><td>${stockData[stock]}</td>`;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error("❌ خطأ في تحليل البيانات:", error);
+            }
+        };
+
+        socket.onerror = (error) => {
+            console.error("❌ خطأ في WebSocket:", error);
+        };
+
+        socket.onclose = () => {
+            console.log("🔌 تم إغلاق الاتصال بـ WebSocket");
         };
     </script>
 
 </body>
 </html>
+
