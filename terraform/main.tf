@@ -89,3 +89,20 @@ resource "azurerm_linux_web_app" "web_app" {
   }
 }
 
+
+
+
+resource "azurerm_private_endpoint" "acr_private_endpoint" {
+  name                = "acr-private-endpoint"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  subnet_id           = azurerm_subnet.private_subnet.id
+
+  private_service_connection {
+    name                           = "acr-privatelink"
+    private_connection_resource_id = azurerm_container_registry.acr.id
+    subresource_names              = ["registry"]
+    is_manual_connection           = false
+  }
+}
+
