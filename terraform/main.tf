@@ -82,13 +82,26 @@ resource "azurerm_linux_web_app" "web_app" {
   }
 }
 
+# 🔹 Fetch existing Virtual Network
+data "azurerm_virtual_network" "existing_vnet" {
+  name                = "myVNet"
+  resource_group_name = "myResourceGroupTR"
+}
+
+# 🔹 Fetch existing Subnet for Private Endpoint
+data "azurerm_subnet" "existing_private_subnet" {
+  name                 = "myPrivateSubnet"
+  virtual_network_name = data.azurerm_virtual_network.existing_vnet.name
+  resource_group_name  = data.azurerm_virtual_network.existing_vnet.resource_group_name
+}
+
 # 🔹 Private Endpoint Setup
 resource "azurerm_private_endpoint" "acr_private_endpoint" {
-  count               = length(try(data.azurerm_subnet.existing_private_subnet[*].name, [])) > 0 ? 1 : 0
+  count               = length(try(data.azurerm_subnet.existing_private_subnet.name, "")) > 0 ? 1 : 0
   name                = "acr-private-endpoint"
   location            = coalesce(try(azurerm_resource_group.my_rg[0].location, null), try(data.azurerm_resource_group.existing_rg.location, "West Europe"))
   resource_group_name = coalesce(try(azurerm_resource_group.my_rg[0].name, null), data.azurerm_resource_group.existing_rg.name)
-  subnet_id           = try(data.azurerm_subnet.existing_private_subnet[0].id, "")
+  subnet_id           = data.azurerm_subnet.existing_private_subnet.id
 
   private_service_connection {
     name                           = "acr-privatelink"
