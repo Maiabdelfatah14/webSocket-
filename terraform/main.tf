@@ -8,6 +8,17 @@ data "azurerm_resource_group" "existing_rg" {
   name = "myResourceGroupTR"
 }
 
+# 🔹 Create Resource Group if not found
+resource "azurerm_resource_group" "my_rg" {
+  count    = length(try(data.azurerm_resource_group.existing_rg[*].name, [])) > 0 ? 0 : 1
+  name     = "myResourceGroupTR"
+  location = "West Europe"
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
+}
+
 # 🔹 Create ACR
 resource "azurerm_container_registry" "my_acr" {
   name                = "myacrTR202"
