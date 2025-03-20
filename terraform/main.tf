@@ -100,7 +100,7 @@ data "azurerm_subnet" "existing_private_subnet" {
   count                = length(try(data.azurerm_virtual_network.existing_vnet[*].name, [])) > 0 ? 1 : 0
   name                 = "private-endpoint-subnet"
   resource_group_name  = "myResourceGroupTR"
-  virtual_network_name = try(data.azurerm_virtual_network.existing_vnet[0].name, "")
+  virtual_network_name = try(data.azurerm_virtual_network.existing_vnet.name, "")
 }
 
 resource "azurerm_private_endpoint" "acr_private_endpoint" {
