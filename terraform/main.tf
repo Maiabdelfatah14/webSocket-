@@ -3,10 +3,9 @@ provider "azurerm" {
   subscription_id = var.Subscription_id
 }
 
-# 🔹 Create Resource Group
-resource "azurerm_resource_group" "my_rg" {
-  name     = "myResourceGroupTR"
-  location = "West Europe"
+# 🔹 Fetch existing Resource Group
+data "azurerm_resource_group" "existing_rg" {
+  name = "myResourceGroupTR"
 }
 
 # 🔹 Create ACR
