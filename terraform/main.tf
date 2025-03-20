@@ -94,24 +94,18 @@ resource "azurerm_linux_web_app" "web_app" {
 
 
 
-
-resource "azurerm_virtual_network" "vnet" {
+# ✅ Use only the data block since we imported the VNet
+data "azurerm_virtual_network" "existing_vnet" {
   name                = "my-vnet"
   resource_group_name = "myResourceGroupTR"
-  location            = "West Europe"
-  address_space       = ["10.0.0.0/16"]
 }
-
 
 resource "azurerm_subnet" "private_subnet" {
   name                 = "private-endpoint-subnet"
   resource_group_name  = "myResourceGroupTR"
-  virtual_network_name = azurerm_virtual_network.vnet.name
+  virtual_network_name = data.azurerm_virtual_network.existing_vnet.name  # ✅ Fix reference
   address_prefixes     = ["10.0.1.0/24"]
 }
-
-
-
 
 resource "azurerm_private_endpoint" "acr_private_endpoint" {
   name                = "acr-private-endpoint"
@@ -126,6 +120,3 @@ resource "azurerm_private_endpoint" "acr_private_endpoint" {
     is_manual_connection           = false
   }
 }
-
-
-
