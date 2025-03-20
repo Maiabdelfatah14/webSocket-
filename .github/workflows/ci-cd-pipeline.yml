@@ -28,6 +28,20 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+       # 🔹 Set up Terraform
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: latest
+          
+ # 🔹 Initialize and apply Terraform configuration
+      - name: Terraform init and apply
+        working-directory: terraform
+        run: |
+          terraform init
+          terraform apply -auto-approve -var "Subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+
+
       # 🔹 إنشاء Key Vault إذا لم يكن موجودًا
       - name: Create Key Vault if not exists
         run: |
@@ -146,13 +160,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 🔹 Set up Terraform
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: latest
-
-
       - name: Log in to Azure
         uses: azure/login@v1
         with:
@@ -167,12 +174,6 @@ jobs:
           az group show --name myResourceGroupTR || az group create --name myResourceGroupTR --location "West Europe"
           az acr show --name myacrTR202 || az acr create --resource-group myResourceGroupTR --name myacrTR202 --sku Basic
 
-      # 🔹 Initialize and apply Terraform configuration
-      - name: Terraform init and apply
-        working-directory: terraform
-        run: |
-          terraform init
-          terraform apply -auto-approve -var "Subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
       # 🔹 Deploy the containerized application to Azure App Service
       - name: Deploy Web App on Azure App Service
