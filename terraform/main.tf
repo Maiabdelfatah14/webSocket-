@@ -9,7 +9,7 @@ data "azurerm_resource_group" "existing_rg" {
 }
 
 resource "azurerm_resource_group" "my_rg" {
-  count    = try(data.azurerm_resource_group.existing_rg.name, null) != null ? 0 : 1
+  count    = length(try(data.azurerm_resource_group.existing_rg[*].name, [])) > 0 ? 0 : 1
   name     = "myResourceGroupTR"
   location = "West Europe"
 
@@ -23,13 +23,6 @@ data "azurerm_container_registry" "existing_acr" {
   count               = 1
   name                = "myacrTR202"
   resource_group_name = "myResourceGroupTR"
-
-  lifecycle {
-    postcondition {
-      condition     = self.id != null
-      error_message = "ACR does not exist, continuing with creation..."
-    }
-  }
 }
 
 # 🔹 Create ACR if it does not exist
@@ -54,7 +47,6 @@ resource "azurerm_container_registry" "my_acr" {
   }
 }
 
-
 # 🔹 Check if App Service Plan exists
 data "azurerm_service_plan" "existing_app_service_plan" {
   name                = "myAppServicePlan"
@@ -62,7 +54,7 @@ data "azurerm_service_plan" "existing_app_service_plan" {
 }
 
 resource "azurerm_service_plan" "app_service_plan" {
-  count = try(data.azurerm_service_plan.existing_app_service_plan.name, null) != null ? 0 : 1
+  count = length(try(data.azurerm_service_plan.existing_app_service_plan[*].name, [])) > 0 ? 0 : 1
 
   name                = "myAppServicePlan"
   location            = coalesce(try(azurerm_resource_group.my_rg[0].location, null), try(data.azurerm_resource_group.existing_rg.location, "West Europe"))
@@ -71,23 +63,21 @@ resource "azurerm_service_plan" "app_service_plan" {
   sku_name            = "B1"
 }
 
-# 🔹 Check if Web App exists
-data "azurerm_linux_web_app" "existing_web_app" {
-  name                = "my-fastapi-websocket-app"
-  resource_group_name = "myResourceGroupTR"
-}
-
+# 🔹 Fix Web App Reference
 resource "azurerm_linux_web_app" "web_app" {
-  count = try(data.azurerm_linux_web_app.existing_web_app.name, null) != null ? 0 : 1
+  count = 1
 
   name                = "my-fastapi-websocket-app"
-  location            = coalesce(try(azurerm_resource_group.my_rg[0].location, null), try(data.azurerm_resource_group.existing_rg.location, "West Europe"))
-  resource_group_name = coalesce(try(azurerm_resource_group.my_rg[0].name, null), data.azurerm_resource_group.existing_rg.name)
-  service_plan_id     = coalesce(try(azurerm_service_plan.app_service_plan[0].id, null), try(data.azurerm_service_plan.existing_app_service_plan.id, null))
+  location            = "West Europe"
+  resource_group_name = "myResourceGroupTR"
+  service_plan_id     = azurerm_service_plan.app_service_plan[0].id
 
   site_config {
     application_stack {
-      docker_image_name = "${coalesce(try(azurerm_container_registry.my_acr[0].login_server, null), try(data.azurerm_container_registry.existing_acr.login_server, ""))}/fastapi-websocket:latest"
+      docker_image_name = "${coalesce(
+        try(azurerm_container_registry.my_acr[0].login_server, null), 
+        try(data.azurerm_container_registry.existing_acr[0].login_server, "")
+      )}/fastapi-websocket:latest"
     }
   }
 
@@ -107,14 +97,14 @@ data "azurerm_virtual_network" "existing_vnet" {
 }
 
 data "azurerm_subnet" "existing_private_subnet" {
-  count                = try(data.azurerm_virtual_network.existing_vnet.name, null) != null ? 1 : 0
+  count                = length(try(data.azurerm_virtual_network.existing_vnet[*].name, [])) > 0 ? 1 : 0
   name                 = "private-endpoint-subnet"
   resource_group_name  = "myResourceGroupTR"
-  virtual_network_name = try(data.azurerm_virtual_network.existing_vnet.name, "")
+  virtual_network_name = try(data.azurerm_virtual_network.existing_vnet[0].name, "")
 }
 
 resource "azurerm_private_endpoint" "acr_private_endpoint" {
-  count               = try(data.azurerm_subnet.existing_private_subnet[0].name, null) != null ? 1 : 0
+  count               = length(try(data.azurerm_subnet.existing_private_subnet[*].name, [])) > 0 ? 1 : 0
   name                = "acr-private-endpoint"
   location            = coalesce(try(azurerm_resource_group.my_rg[0].location, null), try(data.azurerm_resource_group.existing_rg.location, "West Europe"))
   resource_group_name = coalesce(try(azurerm_resource_group.my_rg[0].name, null), data.azurerm_resource_group.existing_rg.name)
@@ -122,7 +112,7 @@ resource "azurerm_private_endpoint" "acr_private_endpoint" {
 
   private_service_connection {
     name                           = "acr-privatelink"
-    private_connection_resource_id = coalesce(try(azurerm_container_registry.my_acr[0].id, null), try(data.azurerm_container_registry.existing_acr.id, null))
+    private_connection_resource_id = coalesce(try(azurerm_container_registry.my_acr[0].id, null), try(data.azurerm_container_registry.existing_acr[0].id, null))
     subresource_names              = ["registry"]
     is_manual_connection           = false
   }
