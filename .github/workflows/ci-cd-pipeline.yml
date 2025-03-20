@@ -121,7 +121,7 @@ jobs:
           docker build -t myacrTR202.azurecr.io/fastapi-websocket:latest .
           docker push myacrTR202.azurecr.io/fastapi-websocket:latest
 
-        # trivyyyy
+        # Fail the pipeline (exit-code: 1) if any CRITICAL or HIGH severity vulnerabilities are found
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
