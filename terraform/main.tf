@@ -27,7 +27,7 @@ resource "azurerm_container_registry" "my_acr" {
   name                = "myacrTR202"
   resource_group_name = "myResourceGroupTR"
   location            = "West Europe"
-  sku                 = "Premium"  # ✅ Ensure this is set to Premium
+  sku                 = "Premium"
 
   identity {
     type = "SystemAssigned"
@@ -37,11 +37,11 @@ resource "azurerm_container_registry" "my_acr" {
     environment = "production"
   }
 
-  lifecycle {
-    create_before_destroy = true
-    ignore_changes        = [tags]
+  lifecycle {  
+    ignore_changes = [tags]
   }
 }
+
 
 
   lifecycle {
