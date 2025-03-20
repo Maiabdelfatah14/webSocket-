@@ -28,7 +28,7 @@ resource "azurerm_container_registry" "my_acr" {
   name                = "myacrTR202"
   resource_group_name = "myResourceGroupTR"
   location            = "West Europe"
-  sku                 = "Premium"  # ✅ Change Basic → Premium
+  sku                 = "Premium"  # ✅ Make sure this is Premium
 
   identity {
     type = "SystemAssigned"
@@ -39,9 +39,11 @@ resource "azurerm_container_registry" "my_acr" {
   }
 
   lifecycle {
-    ignore_changes = [tags]
+    create_before_destroy = true  # ✅ Ensures no downtime when upgrading SKU
+    ignore_changes        = [tags]
   }
 }
+
 
 
 # جلب معلومات الـ App Service Plan إذا كان موجودًا
