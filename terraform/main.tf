@@ -24,12 +24,11 @@ data "azurerm_container_registry" "existing_acr" {
 }
 
 resource "azurerm_container_registry" "my_acr" {
-  count = length(data.azurerm_container_registry.existing_acr.id) > 0 ? 0 : 1
-
+  count               = length(data.azurerm_container_registry.existing_acr.id) > 0 ? 0 : 1
   name                = "myacrTR202"
   resource_group_name = "myResourceGroupTR"
   location            = "West Europe"
-  sku                 = "Premium"   # 🔹 Change SKU from "Basic" to "Premium"
+  sku                 = "Premium"  # ✅ Change Basic → Premium
 
   identity {
     type = "SystemAssigned"
