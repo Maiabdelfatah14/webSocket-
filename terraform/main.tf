@@ -29,7 +29,7 @@ resource "azurerm_container_registry" "my_acr" {
   name                = "myacrTR202"
   resource_group_name = "myResourceGroupTR"
   location            = "West Europe"
-  sku                 = "Basic"
+  sku                 = "Premium"   # 🔹 Change SKU from "Basic" to "Premium"
 
   identity {
     type = "SystemAssigned"
@@ -43,6 +43,7 @@ resource "azurerm_container_registry" "my_acr" {
     ignore_changes = [tags]
   }
 }
+
 
 # جلب معلومات الـ App Service Plan إذا كان موجودًا
 data "azurerm_service_plan" "existing_app_service_plan" {
