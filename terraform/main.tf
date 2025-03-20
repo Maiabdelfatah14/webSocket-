@@ -27,7 +27,7 @@ resource "azurerm_resource_group" "my_rg" {
 
 # 🔹 Create ACR if it does not exist
 resource "azurerm_container_registry" "my_acr" {
-  count               = length(try(data.azurerm_container_registry.existing_acr[*].name, [])) > 0 ? 0 : 1
+  #count               = length(try(data.azurerm_container_registry.existing_acr[*].name, [])) > 0 ? 0 : 1
   name                = "myacrTR202"
   resource_group_name = "myResourceGroupTR"
   location            = "West Europe"
@@ -37,13 +37,8 @@ resource "azurerm_container_registry" "my_acr" {
     type = "SystemAssigned"
   }
 
-  tags = {
-    environment = "production"
-  }
-
   lifecycle {
     create_before_destroy = true
-    ignore_changes        = [tags]
   }
 }
 
