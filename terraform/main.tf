@@ -40,21 +40,13 @@ resource "azurerm_linux_web_app" "web_app" {
 
  site_config {
      always_on         = true  # Keeps the app running
-     application_stack {
-       docker_image_name = "${azurerm_container_registry.my_acr.login_server}/fastapi-websocket:latest"
-     }
+     linux_fx_version  = "DOCKER|${azurerm_container_registry.my_acr.login_server}/my-app:latest"
    }
 
-
-
   app_settings = {
-    "DOCKER_REGISTRY_SERVER_URL"      = "https://${azurerm_container_registry.my_acr.login_server}"
-    "DOCKER_REGISTRY_SERVER_USERNAME" = azurerm_container_registry.my_acr.admin_username
-    "DOCKER_REGISTRY_SERVER_PASSWORD" = azurerm_container_registry.my_acr.admin_password
+    "WEBSOCKET_ENABLED" = "true"
   }
 }
- 
-
 
 #------------------------------------------------ azure montor / alerts ---------------------------
 # 🔹 Application Insights for Monitoring
@@ -183,28 +175,58 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
 
 
 #---------------------------------------------------  NSGs to secure -------------------------------
-# 🔹 NSG for WebSocket App
+resource "azurerm_virtual_network" "my_vnet" {
+  name                = "my-vnet"
+  location            = azurerm_resource_group.my_rg.location
+  resource_group_name = azurerm_resource_group.my_rg.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "private_link_subnet" {
+  name                 = "private-link-subnet"
+  resource_group_name  = azurerm_resource_group.my_rg.name
+  virtual_network_name = azurerm_virtual_network.my_vnet.name
+  address_prefixes     = ["10.0.1.0/24"]
+  enforce_private_link_endpoint_network_policies = true
+}
+
+
+resource "azurerm_private_endpoint" "app_service_pe" {
+  name                = "app-service-private-endpoint"
+  location            = azurerm_resource_group.my_rg.location
+  resource_group_name = azurerm_resource_group.my_rg.name
+  subnet_id           = azurerm_subnet.private_link_subnet.id
+
+  private_service_connection {
+    name                           = "appservice-private-connection"
+    private_connection_resource_id = azurerm_linux_web_app.web_app.id
+    subresource_names              = ["sites"]
+    is_manual_connection           = false
+  }
+}
+
 resource "azurerm_network_security_group" "websocket_nsg" {
   name                = "websocket-nsg"
   location            = azurerm_resource_group.my_rg.location
   resource_group_name = azurerm_resource_group.my_rg.name
 }
 
-# 🔹 Allow WebSocket traffic only from trusted sources (e.g., AKS)
+# 🔹 السماح بالاتصال عبر WebSocket فقط من Subnet معينة
 resource "azurerm_network_security_rule" "allow_websocket_traffic" {
   name                        = "AllowWebSocketTraffic"
   priority                    = 100
   direction                   = "Inbound"
   access                      = "Allow"
   protocol                    = "Tcp"
-  source_address_prefix       = "10.0.0.0/16"  # Adjust to your AKS subnet
+  source_address_prefix       = "10.0.2.0/24"  # ضع Subnet الصحيحة الخاصة بالـ Private Endpoint
+  source_port_range           = "*"
   destination_address_prefix  = "*"
-  destination_port_range      = "443"  # WebSockets over HTTPS
+  destination_port_range      = "443"
   resource_group_name         = azurerm_resource_group.my_rg.name
   network_security_group_name = azurerm_network_security_group.websocket_nsg.name
 }
 
-# 🔹 Deny all other inbound traffic
+# 🔹 رفض أي اتصال غير مصرح به
 resource "azurerm_network_security_rule" "deny_all" {
   name                        = "DenyAllInbound"
   priority                    = 200
@@ -212,41 +234,15 @@ resource "azurerm_network_security_rule" "deny_all" {
   access                      = "Deny"
   protocol                    = "Tcp"
   source_address_prefix       = "*"
+  source_port_range           = "*"
   destination_address_prefix  = "*"
   destination_port_range      = "*"
   resource_group_name         = azurerm_resource_group.my_rg.name
   network_security_group_name = azurerm_network_security_group.websocket_nsg.name
 }
 
-
-resource "azurerm_virtual_network" "vnet" {
-  name                = "my-vnet"
-  location            = azurerm_resource_group.my_rg.location
-  resource_group_name = azurerm_resource_group.my_rg.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-
-resource "azurerm_subnet" "private_subnet" {
-  name                 = "private-subnet"
-  resource_group_name  = azurerm_resource_group.my_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-# 🔹 Associate NSG with Subnet
+# 🔹NSG with Subnet
 resource "azurerm_subnet_network_security_group_association" "websocket_nsg_association" {
-  subnet_id                 = azurerm_subnet.private_subnet.id
+  subnet_id                 = azurerm_subnet.private_link_subnet.id
   network_security_group_id = azurerm_network_security_group.websocket_nsg.id
 }
-
-
-# 🔹 Virtual Network (Existing Resource)
-#resource "azurerm_virtual_network" "vnet" {
- # name                = "myVNet"
-  #resource_group_name = azurerm_resource_group.my_rg.name
-  #location            = azurerm_resource_group.my_rg.location
-  #address_space       = ["10.0.0.0/16"]
-
-  #lifecycle {
-   # ignore_changes  = [tags]}}
