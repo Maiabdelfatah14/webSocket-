@@ -87,6 +87,17 @@ resource "azurerm_monitor_metric_alert" "latency_alert" {
   }
 }
 
+# 🔹 create monitor_action_group
+resource "azurerm_monitor_action_group" "alert_action" {
+  name                = "alert-action-group"
+  resource_group_name = azurerm_resource_group.my_rg.name
+  short_name          = "AlertGrp"
+
+  email_receiver {
+    name          = "admin-alert"
+    email_address = "admin@example.com"
+  }
+}
 
 # 🔹 WebSocket Failures Alert
 resource "azurerm_monitor_metric_alert" "websocket_failure_alert" {
@@ -99,7 +110,7 @@ resource "azurerm_monitor_metric_alert" "websocket_failure_alert" {
   criteria {
     metric_namespace = "Microsoft.Web/sites"
     metric_name      = "Http5xx"  # استبدال WebSocketRequestsFailed بـ Http5xx
-    aggregation      = "Sum" 
+    aggregation      = "Average"
     operator         = "GreaterThanOrEqual"
     threshold        = 10 
   }
@@ -121,7 +132,7 @@ resource "azurerm_monitor_metric_alert" "downtime_alert" {
   criteria {
     metric_namespace = "Microsoft.Web/sites"
     metric_name      = "Http5xx"
-    aggregation      = "Sum"  # ✅ استخدم Sum بدلاً من Total
+    aggregation      = "Average"
     operator         = "GreaterThan"
     threshold        = 1
   }
