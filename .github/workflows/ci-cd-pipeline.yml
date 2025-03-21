@@ -39,7 +39,11 @@ jobs:
       - name: Terraform Apply
         working-directory: terraform
         run: terraform apply -auto-approve -var "Subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
-        
+
+      - name: Show Terraform State File
+        working-directory: terraform
+        run: cat terraform.tfstate
+
 
   secrets-management:
     runs-on: ubuntu-latest
