@@ -43,7 +43,7 @@ jobs:
 
   secrets-management:
     runs-on: ubuntu-latest
-    needs: infrastructure
+   # needs: infrastructure
     steps:
       - name: Azure Login
         uses: azure/login@v1
@@ -87,7 +87,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-   # needs: secrets-management
+    needs: secrets-management
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
