@@ -36,7 +36,7 @@ resource "azurerm_linux_web_app" "web_app" {
   name                = var.app_service_name
   resource_group_name = azurerm_resource_group.my_rg.name
   location            = azurerm_resource_group.my_rg.location
-  app_service_plan_id = azurerm_service_plan.app_service_plan.id
+  service_plan_id     = azurerm_service_plan.app_service_plan.id 
 
  site_config {
      application_stack {
@@ -44,7 +44,7 @@ resource "azurerm_linux_web_app" "web_app" {
        always_on         = true  # Keeps the app running
      }
    }
- 
+
 
   app_settings = {
     "DOCKER_REGISTRY_SERVER_URL"      = "https://${azurerm_container_registry.my_acr.login_server}"
@@ -70,7 +70,7 @@ resource "azurerm_application_insights" "app_insights" {
 resource "azurerm_monitor_metric_alert" "latency_alert" {
   name                = "latency-alert"
   resource_group_name = azurerm_resource_group.my_rg.name
-  scopes             = [azurerm_app_service.web_app.id]
+  scopes             = [azurerm_linux_web_app.web_app.id]
   description        = "Alert if latency is greater than 2 seconds"
   severity           = 2
 
@@ -83,11 +83,12 @@ resource "azurerm_monitor_metric_alert" "latency_alert" {
   }
 }
 
+
 # 🔹 WebSocket Failures Alert
 resource "azurerm_monitor_metric_alert" "websocket_failure_alert" {
   name                = "websocket-failure-alert"
   resource_group_name = azurerm_resource_group.my_rg.name
-  scopes             = [azurerm_app_service.web_app.id]
+  scopes             = [azurerm_linux_web_app.web_app.id]
   description        = "Alert on WebSocket failure spikes"
   severity           = 3
 
@@ -104,7 +105,7 @@ resource "azurerm_monitor_metric_alert" "websocket_failure_alert" {
 resource "azurerm_monitor_metric_alert" "downtime_alert" {
   name                = "downtime-alert"
   resource_group_name = azurerm_resource_group.my_rg.name
-  scopes             = [azurerm_app_service.web_app.id]
+  scopes             = [azurerm_linux_web_app.web_app.id]
   description        = "Alert when the app is down"
   severity           = 1
 
@@ -145,6 +146,7 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
         operator           = "GreaterThan"
         threshold          = 100  # Scale when more than 100 active connections
         time_aggregation   = "Average"
+        metric_resource_id = azurerm_linux_web_app.web_app.id
       }
 
       scale_action {
@@ -165,6 +167,7 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
         operator           = "LessThan"
         threshold          = 50  # Scale down when connections drop below 50
         time_aggregation   = "Average"
+        metric_resource_id = azurerm_linux_web_app.web_app.id
       }
 
       scale_action {
@@ -219,9 +222,6 @@ resource "azurerm_subnet_network_security_group_association" "websocket_nsg_asso
   subnet_id                 = azurerm_subnet.private_subnet.id
   network_security_group_id = azurerm_network_security_group.websocket_nsg.id
 }
-
-
-
 
 
 # 🔹 Virtual Network (Existing Resource)
