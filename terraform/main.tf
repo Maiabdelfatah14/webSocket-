@@ -38,10 +38,12 @@ resource "azurerm_app_service" "web_app" {
   location            = azurerm_resource_group.my_rg.location
   app_service_plan_id = azurerm_service_plan.app_service_plan.id
 
-  site_config {
-    linux_fx_version = "DOCKER|${azurerm_container_registry.my_acr.login_server}/fastapi-websocket:latest"
-    always_on        = true
-  }
+ site_config {
+     application_stack {
+       docker_image_name = "${azurerm_container_registry.my_acr.login_server}/fastapi-websocket:latest"
+     }
+   }
+ 
 
   app_settings = {
     "DOCKER_REGISTRY_SERVER_URL"      = "https://${azurerm_container_registry.my_acr.login_server}"
