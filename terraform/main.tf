@@ -9,7 +9,6 @@ resource "azurerm_resource_group" "my_rg" {
   location = "East US"
 
   lifecycle {
-    prevent_destroy = true
     ignore_changes  = [tags]
   }
 }
@@ -26,7 +25,6 @@ resource "azurerm_container_registry" "my_acr" {
   }
 
   lifecycle {
-    prevent_destroy = true
     ignore_changes  = [tags]
   }
 }
@@ -40,7 +38,6 @@ resource "azurerm_service_plan" "app_service_plan" {
   sku_name            = "B1"
 
   lifecycle {
-    prevent_destroy = true
     ignore_changes  = [tags]
   }
 }
@@ -53,7 +50,6 @@ resource "azurerm_virtual_network" "vnet" {
   address_space       = ["10.0.0.0/16"]
 
   lifecycle {
-    prevent_destroy = true
     ignore_changes  = [tags]
   }
 }
