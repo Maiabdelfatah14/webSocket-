@@ -102,7 +102,7 @@ resource "azurerm_monitor_action_group" "alert_action" {
 # 🔹 WebSocket Failures Alert
 resource "azurerm_monitor_metric_alert" "websocket_failure_alert" {
   name                = "websocket-failure-alert"
-  resource_group_name = azurerm_resource_group.main.name
+  resource_group_name = azurerm_resource_group.my_rg.name
   scopes              = [azurerm_linux_web_app.web_app.id]
   description         = "Monitor HTTP 5xx errors"
   severity            = 2 
