@@ -40,10 +40,6 @@ jobs:
         working-directory: terraform
         run: terraform apply -auto-approve -var "Subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
-      - name: Show Terraform State File
-        working-directory: terraform
-        run: cat terraform.tfstate
-
 
   secrets-management:
     runs-on: ubuntu-latest
@@ -84,8 +80,6 @@ jobs:
 
       - name: Add secrets to Key Vault
         run: |
-          az keyvault secret set --vault-name KeyVaultSC23 --name DOCKER-USERNAME --value "${{ secrets.DOCKER_USERNAME }}"
-          az keyvault secret set --vault-name KeyVaultSC23 --name DOCKER-PASSWORD --value "${{ secrets.DOCKER_PASSWORD }}"
           az keyvault secret set --vault-name KeyVaultSC23 --name ACR-USERNAME --value "${{ secrets.ACR_USERNAMETR }}"
           az keyvault secret set --vault-name KeyVaultSC23 --name ACR-PASSWORD --value "${{ secrets.ACR_PASSWORDTR }}"
 
@@ -102,21 +96,8 @@ jobs:
       - name: Get secrets from Azure Key Vault
         id: get-secrets
         run: |
-          echo "DOCKER_USERNAME=$(az keyvault secret show --name DOCKER-USERNAME --vault-name KeyVaultSC23 --query value -o tsv)" >> $GITHUB_ENV
-          echo "DOCKER_PASSWORD=$(az keyvault secret show --name DOCKER-PASSWORD --vault-name KeyVaultSC23 --query value -o tsv)" >> $GITHUB_ENV
           echo "ACR_USERNAME=$(az keyvault secret show --name ACR-USERNAME --vault-name KeyVaultSC23 --query value -o tsv)" >> $GITHUB_ENV
           echo "ACR_PASSWORD=$(az keyvault secret show --name ACR-PASSWORD --vault-name KeyVaultSC23 --query value -o tsv)" >> $GITHUB_ENV
-
-      - name: Log in to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ env.DOCKER_PASSWORD }}
-
-      - name: Build and push Docker image to DockerHub
-        run: |
-          docker build -t maiabdelfata7/fastapi-websocket .
-          docker push maiabdelfata7/fastapi-websocket
 
       - name: Log in to ACR
         run: echo ${{ env.ACR_PASSWORD }} | docker login myacrTR202.azurecr.io -u ${{ env.ACR_USERNAME }} --password-stdin
