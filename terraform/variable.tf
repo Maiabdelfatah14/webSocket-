@@ -33,3 +33,10 @@ variable "app_service_plan_name" {
   type        = string
   default     = "myAppServicePlan"
 }
+
+variable "app_insights_name" {
+  description = "Application Insights Name"
+  type        = string
+  default     = "myAppInsights"
+}
+
