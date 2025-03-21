@@ -41,47 +41,49 @@ jobs:
   #       run: terraform apply -auto-approve -var "Subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
 
-  # secrets-management:
-  #   runs-on: ubuntu-latest
-  #   needs: infrastructure
-  #   steps:
-  #     - name: Azure Login
-  #       uses: azure/login@v1
-  #       with:
-  #         client-id: ${{ secrets.AZURE_CLIENT_ID }}
-  #         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-  #         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  secrets-management:
+    runs-on: ubuntu-latest
+    needs: infrastructure
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-  #     - name: Create Key Vault if not exists
-  #       run: |
-  #         if ! az keyvault show --name KeyVaultSC23 --resource-group myResourceGroupTR &>/dev/null; then
-  #           az keyvault create --name KeyVaultSC23 --resource-group myResourceGroupTR --location "West Europe" --sku standard
-  #         fi
+      - name: Create Key Vault if not exists
+        run: |
+          if ! az keyvault show --name KeyVaultSC23 --resource-group myResourceGroupTR &>/dev/null; then
+            az keyvault create --name KeyVaultSC23 --resource-group myResourceGroupTR --location "West Europe" --sku standard
+          fi
 
-  #     - name: Get Service Principal Object ID
-  #       id: get-sp-object-id
-  #       run: |
-  #         SP_ID=$(az ad sp show --id ${{ secrets.AZURE_CLIENT_ID }} --query id -o tsv)
-  #         echo "SP_ID=$SP_ID" >> $GITHUB_ENV
+      - name: Get Service Principal Object ID
+        id: get-sp-object-id
+        run: |
+          SP_ID=$(az ad sp show --id ${{ secrets.AZURE_CLIENT_ID }} --query id -o tsv)
+          echo "SP_ID=$SP_ID" >> $GITHUB_ENV
 
-  #     - name: Assign Key Vault Secrets Officer Role
-  #       run: |
-  #         az role assignment create --assignee $SP_ID --role "Key Vault Secrets Officer" \
-  #         --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.KeyVault/vaults/KeyVaultSC23
+      - name: Assign Key Vault Secrets Officer Role
+        run: |
+          az role assignment create --assignee $SP_ID --role "Key Vault Secrets Officer" \
+          --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.KeyVault/vaults/KeyVaultSC23
 
-  #     - name: Wait for role assignment propagation
-  #       run: |
-  #         echo "Waiting for role assignment to propagate..."
-  #         sleep 90  # Wait 90 seconds for RBAC propagation
+      - name: Wait for role assignment propagation
+        run: |
+          echo "Waiting for role assignment to propagate..."
+          sleep 90  # Wait 90 seconds for RBAC propagation
 
-  #     - name: Verify Role Assignment
-  #       run: |
-  #         az role assignment list --assignee $SP_ID --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.KeyVault/vaults/KeyVaultSC23
+      - name: Verify Role Assignment
+        run: |
+          az role assignment list --assignee $SP_ID --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.KeyVault/vaults/KeyVaultSC23
 
-  #     - name: Add secrets to Key Vault
-  #       run: |
-  #         az keyvault secret set --vault-name KeyVaultSC23 --name ACR-USERNAME --value "${{ secrets.ACR_USERNAMETR }}"
-  #         az keyvault secret set --vault-name KeyVaultSC23 --name ACR-PASSWORD --value "${{ secrets.ACR_PASSWORDTR }}"
+      - name: Add secrets to Key Vault
+        run: |
+          az keyvault secret set --vault-name KeyVaultSC23 --name DOCKER-USERNAME --value "${{ secrets.DOCKER_USERNAME }}"
+          az keyvault secret set --vault-name KeyVaultSC23 --name DOCKER-PASSWORD --value "${{ secrets.DOCKER_PASSWORD }}"
+          az keyvault secret set --vault-name KeyVaultSC23 --name ACR-USERNAME --value "${{ secrets.ACR_USERNAMETR }}"
+          az keyvault secret set --vault-name KeyVaultSC23 --name ACR-PASSWORD --value "${{ secrets.ACR_PASSWORDTR }}"
 
   build:
     runs-on: ubuntu-latest
@@ -103,8 +105,25 @@ jobs:
       - name: Get secrets from Azure Key Vault
         id: get-secrets
         run: |
+          echo "DOCKER_USERNAME=$(az keyvault secret show --name DOCKER-USERNAME --vault-name KeyVaultSC23 --query value -o tsv)" >> $GITHUB_ENV
+          echo "DOCKER_PASSWORD=$(az keyvault secret show --name DOCKER-PASSWORD --vault-name KeyVaultSC23 --query value -o tsv)" >> $GITHUB_ENV
           echo "ACR_USERNAME=$(az keyvault secret show --name ACR-USERNAME --vault-name KeyVaultSC23 --query value -o tsv)" >> $GITHUB_ENV
           echo "ACR_PASSWORD=$(az keyvault secret show --name ACR-PASSWORD --vault-name KeyVaultSC23 --query value -o tsv)" >> $GITHUB_ENV
+
+
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+           username: ${{ env.DOCKER_USERNAME }}
+           password: ${{ env.DOCKER_PASSWORD }}
+ 
+      - name: Build and push Docker image to DockerHub
+        run: |
+           docker build -t maiabdelfata7/fastapi-websocket .
+           docker push maiabdelfata7/fastapi-websocket
+
+
 
       - name: Log in to ACR
         run: echo ${{ env.ACR_PASSWORD }} | docker login myacrTR202.azurecr.io -u ${{ env.ACR_USERNAME }} --password-stdin
