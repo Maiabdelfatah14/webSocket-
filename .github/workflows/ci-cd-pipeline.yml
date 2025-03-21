@@ -14,12 +14,37 @@ permissions:
   contents: read
       
 jobs:
-  # infrastructure:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
+   infrastructure:
+    runs-on: ubuntu-latest
+    steps:
+       - name: Checkout code
+         uses: actions/checkout@v4
 
+       - name: Azure Login
+         uses: azure/login@v1
+         with:
+           client-id: ${{ secrets.AZURE_CLIENT_ID }}
+           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+       - name: Set up Terraform
+         uses: hashicorp/setup-terraform@v2
+         with:
+           terraform_version: latest
+
+       - name: Terraform Init
+         working-directory: terraform
+         run: terraform init
+
+       - name: Terraform Apply
+         working-directory: terraform
+         run: terraform apply -auto-approve -var "Subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+
+
+  # secrets-management:
+  #   runs-on: ubuntu-latest
+  #   needs: infrastructure
+  #   steps:
   #     - name: Azure Login
   #       uses: azure/login@v1
   #       with:
@@ -27,152 +52,131 @@ jobs:
   #         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
   #         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-  #     - name: Set up Terraform
-  #       uses: hashicorp/setup-terraform@v2
-  #       with:
-  #         terraform_version: latest
+  #     - name: Create Key Vault if not exists
+  #       run: |
+  #         if ! az keyvault show --name KeyVaultSC23 --resource-group myResourceGroupTR &>/dev/null; then
+  #           az keyvault create --name KeyVaultSC23 --resource-group myResourceGroupTR --location "West Europe" --sku standard
+  #         fi
 
-  #     - name: Terraform Init
-  #       working-directory: terraform
-  #       run: terraform init
+  #     - name: Get Service Principal Object ID
+  #       id: get-sp-object-id
+  #       run: |
+  #         SP_ID=$(az ad sp show --id ${{ secrets.AZURE_CLIENT_ID }} --query id -o tsv)
+  #         echo "SP_ID=$SP_ID" >> $GITHUB_ENV
 
-  #     - name: Terraform Apply
-  #       working-directory: terraform
-  #       run: terraform apply -auto-approve -var "Subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+  #     - name: Assign Key Vault Secrets Officer Role
+  #       run: |
+  #         az role assignment create --assignee $SP_ID --role "Key Vault Secrets Officer" \
+  #         --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.KeyVault/vaults/KeyVaultSC23
 
+  #     - name: Wait for role assignment propagation
+  #       run: |
+  #         echo "Waiting for role assignment to propagate..."
+  #         sleep 90  # Wait 90 seconds for RBAC propagation
 
-  secrets-management:
-    runs-on: ubuntu-latest
-   # needs: infrastructure
-    steps:
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  #     - name: Verify Role Assignment
+  #       run: |
+  #         az role assignment list --assignee $SP_ID --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.KeyVault/vaults/KeyVaultSC23
 
-      - name: Create Key Vault if not exists
-        run: |
-          if ! az keyvault show --name KeyVaultSC23 --resource-group myResourceGroupTR &>/dev/null; then
-            az keyvault create --name KeyVaultSC23 --resource-group myResourceGroupTR --location "West Europe" --sku standard
-          fi
+  #     - name: Add secrets to Key Vault
+  #       run: |
+  #         az keyvault secret set --vault-name KeyVaultSC23 --name ACR-USERNAME --value "${{ secrets.ACR_USERNAMETR }}"
+  #         az keyvault secret set --vault-name KeyVaultSC23 --name ACR-PASSWORD --value "${{ secrets.ACR_PASSWORDTR }}"
 
-      - name: Get Service Principal Object ID
-        id: get-sp-object-id
-        run: |
-          SP_ID=$(az ad sp show --id ${{ secrets.AZURE_CLIENT_ID }} --query id -o tsv)
-          echo "SP_ID=$SP_ID" >> $GITHUB_ENV
-
-      - name: Assign Key Vault Secrets Officer Role
-        run: |
-          az role assignment create --assignee $SP_ID --role "Key Vault Secrets Officer" \
-          --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.KeyVault/vaults/KeyVaultSC23
-
-      - name: Wait for role assignment propagation
-        run: |
-          echo "Waiting for role assignment to propagate..."
-          sleep 90  # Wait 90 seconds for RBAC propagation
-
-      - name: Verify Role Assignment
-        run: |
-          az role assignment list --assignee $SP_ID --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.KeyVault/vaults/KeyVaultSC23
-
-      - name: Add secrets to Key Vault
-        run: |
-          az keyvault secret set --vault-name KeyVaultSC23 --name DOCKER-USERNAME --value "${{ secrets.DOCKER_USERNAME }}"
-          az keyvault secret set --vault-name KeyVaultSC23 --name DOCKER-PASSWORD --value "${{ secrets.DOCKER_PASSWORD }}"
-          az keyvault secret set --vault-name KeyVaultSC23 --name ACR-USERNAME --value "${{ secrets.ACR_USERNAMETR }}"
-          az keyvault secret set --vault-name KeyVaultSC23 --name ACR-PASSWORD --value "${{ secrets.ACR_PASSWORDTR }}"
-
-  build:
-    runs-on: ubuntu-latest
-    needs: secrets-management
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Get secrets from Azure Key Vault
-        id: get-secrets
-        run: |
-          echo "DOCKER_USERNAME=$(az keyvault secret show --name DOCKER-USERNAME --vault-name KeyVaultSC23 --query value -o tsv)" >> $GITHUB_ENV
-          echo "DOCKER_PASSWORD=$(az keyvault secret show --name DOCKER-PASSWORD --vault-name KeyVaultSC23 --query value -o tsv)" >> $GITHUB_ENV
-          echo "ACR_USERNAME=$(az keyvault secret show --name ACR-USERNAME --vault-name KeyVaultSC23 --query value -o tsv)" >> $GITHUB_ENV
-          echo "ACR_PASSWORD=$(az keyvault secret show --name ACR-PASSWORD --vault-name KeyVaultSC23 --query value -o tsv)" >> $GITHUB_ENV
-
-
-
-      - name: Log in to DockerHub
-        uses: docker/login-action@v3
-        with:
-           username: ${{ env.DOCKER_USERNAME }}
-           password: ${{ env.DOCKER_PASSWORD }}
- 
-      - name: Build and push Docker image to DockerHub
-        run: |
-           docker build -t maiabdelfata7/fastapi-websocket .
-           docker push maiabdelfata7/fastapi-websocket
+   build:
+      runs-on: ubuntu-latest
+      # needs: secrets-management
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+  
+        - name: Azure Login
+          uses: azure/login@v1
+          with:
+            client-id: ${{ secrets.AZURE_CLIENT_ID }}
+            tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+            subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v3
+  
+        - name: Get secrets from Azure Key Vault
+          id: get-secrets
+          run: |
+            echo "ACR_USERNAME=$(az keyvault secret show --name ACR-USERNAME --vault-name KeyVaultSC23 --query value -o tsv)" >> $GITHUB_ENV
+            echo "ACR_PASSWORD=$(az keyvault secret show --name ACR-PASSWORD --vault-name KeyVaultSC23 --query value -o tsv)" >> $GITHUB_ENV
+  
+  
+        - name: Log in to ACR
+          #run: echo ${{ env.ACR_PASSWORD }} | docker login myacrTR202.azurecr.io -u ${{ env.ACR_USERNAME }} --password-stdin
+          run: echo ${{ secrets.ACR_PASSWORDTR }} | docker login myacrTR202.azurecr.io -u ${{ secrets.ACR_USERNAMETR }} --password-stdin
+          
+        - name: Build and push Docker image to ACR
+          run: |
+            docker build -t myacrTR202.azurecr.io/fastapi-websocket:latest .
+            docker push myacrTR202.azurecr.io/fastapi-websocket:latest
+  
+        - name: Run Trivy vulnerability scanner
+          uses: aquasecurity/trivy-action@master
+          with:
+            image-ref: "myacrTR202.azurecr.io/fastapi-websocket:latest"
+            format: "table"
+            exit-code: 0  # Ensures the pipeline doesn't fail
+            severity: "CRITICAL,HIGH"
+  
+  
+   deploy:
+      runs-on: ubuntu-latest
+      needs: build
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+  
+        - name: Log in to Azure
+          uses: azure/login@v1
+          with:
+            client-id: ${{ secrets.AZURE_CLIENT_ID }}
+            tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+            subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
 
+#---------------------------------------------------------------- trivy  befor deployment -----------------------------------------
+        - name: Run Trivy Scan (Allow Failures)
+          run: |
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+              aquasec/trivy image --exit-code 0 --severity HIGH,CRITICAL \
+              myacrTR202.azurecr.io/fastapi-websocket:latest | tee trivy-report.txt
+  
+        - name: Upload Trivy Scan Report
+          uses: actions/upload-artifact@v4
+          with:
+            name: trivy-scan-report
+            path: trivy-report.txt
 
-      - name: Log in to ACR
-        run: echo ${{ env.ACR_PASSWORD }} | docker login myacrTR202.azurecr.io -u ${{ env.ACR_USERNAME }} --password-stdin
+#----------------------------------------------------------------------------- deploy ---------------------------------------------
+  
+        - name: Deploy Web App on Azure App Service
+          run: |
+            az webapp config container set \
+              --name my-fastapi-websocket-app \
+              --resource-group myResourceGroupTR \
+              --docker-custom-image-name myacrTR202.azurecr.io/fastapi-websocket:latest \
+              --docker-registry-server-url https://myacrTR202.azurecr.io \
+              --docker-registry-server-user ${{ secrets.ACR_USERNAMETR }} \
+              --docker-registry-server-password ${{ secrets.ACR_PASSWORDTR }}
 
-      - name: Build and push Docker image to ACR
-        run: |
-          docker build -t myacrTR202.azurecr.io/fastapi-websocket:latest .
-          docker push myacrTR202.azurecr.io/fastapi-websocket:latest
-
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: "myacrTR202.azurecr.io/fastapi-websocket:latest"
-          format: "table"
-          exit-code: 0  # Ensures the pipeline doesn't fail
-          severity: "CRITICAL,HIGH"
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Log in to Azure
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Deploy Web App on Azure App Service
-        run: |
-          az webapp config container set \
-            --name my-fastapi-websocket-app \
-            --resource-group myResourceGroupTR \
-            --docker-custom-image-name myacrTR202.azurecr.io/fastapi-websocket:latest \
-            --docker-registry-server-url https://myacrTR202.azurecr.io \
-            --docker-registry-server-user ${{ secrets.ACR_USERNAMETR }} \
-            --docker-registry-server-password ${{ secrets.ACR_PASSWORDTR }}
-
-      - name: Enable Health Check
-        run: |
-          az webapp config set --resource-group myResourceGroupTR --name my-fastapi-websocket-app --generic-configurations "{'healthCheckPath':'/'}"
-
-      - name: Enable Auto-Restart on Failure
-        run: |
-          az webapp config set --resource-group myResourceGroupTR --name my-fastapi-websocket-app --always-on true
-
-      - name: Configure Auto-Scaling
-        run: |
-          az appservice plan update --name myAppServicePlan --resource-group myResourceGroupTR --sku S1
+        - name: Restart App Service
+          run: az webapp restart --name my-fastapi-websocket-app --resource-group myResourceGroupTR
+  
+        - name: Enable Health Check
+          run: |
+            az webapp config set --resource-group myResourceGroupTR --name my-fastapi-websocket-app --generic-configurations "{'healthCheckPath':'/'}"
+  
+        - name: Enable Auto-Restart on Failure
+          run: |
+            az webapp config set --resource-group myResourceGroupTR --name my-fastapi-websocket-app --always-on true
+  
+        - name: Configure Auto-Scaling
+          run: |
+            az appservice plan update --name myAppServicePlan --resource-group myResourceGroupTR --sku S1
+  
