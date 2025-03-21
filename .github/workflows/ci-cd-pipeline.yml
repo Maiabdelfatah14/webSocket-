@@ -60,17 +60,26 @@ jobs:
           SP_ID=$(az ad sp show --id ${{ secrets.AZURE_CLIENT_ID }} --query id -o tsv)
           echo "SP_ID=$SP_ID" >> $GITHUB_ENV
 
+      - name: Assign Key Vault Secrets Officer Role
+        run: |
+          az role assignment create --assignee $SP_ID --role "Key Vault Secrets Officer" \
+          --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.KeyVault/vaults/KeyVaultSC23
+
+      - name: Wait for role assignment propagation
+        run: |
+          echo "Waiting for role assignment to propagate..."
+          sleep 90  # Wait 90 seconds for RBAC propagation
+
+      - name: Verify Role Assignment
+        run: |
+          az role assignment list --assignee $SP_ID --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.KeyVault/vaults/KeyVaultSC23
+
       - name: Add secrets to Key Vault
         run: |
           az keyvault secret set --vault-name KeyVaultSC23 --name DOCKER-USERNAME --value "${{ secrets.DOCKER_USERNAME }}"
           az keyvault secret set --vault-name KeyVaultSC23 --name DOCKER-PASSWORD --value "${{ secrets.DOCKER_PASSWORD }}"
           az keyvault secret set --vault-name KeyVaultSC23 --name ACR-USERNAME --value "${{ secrets.ACR_USERNAMETR }}"
           az keyvault secret set --vault-name KeyVaultSC23 --name ACR-PASSWORD --value "${{ secrets.ACR_PASSWORDTR }}"
-
-      - name: Assign Key Vault Secrets Officer Role
-        run: |
-          az role assignment create --assignee $SP_ID --role "Key Vault Secrets Officer" \
-          --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.KeyVault/vaults/KeyVaultSC23
 
   build:
     runs-on: ubuntu-latest
