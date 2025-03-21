@@ -163,7 +163,7 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
         metric_namespace   = "Microsoft.Web/sites"
         time_grain         = "PT1M"
         time_window        = "PT5M"  # Required field
-        statistic          = "Count"  # More accurate for connection tracking
+        statistic          = "Average"  
         operator           = "GreaterThan"
         threshold          = 100  # Scale when more than 100 active connections
         time_aggregation   = "Average"
@@ -184,7 +184,7 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
         metric_namespace   = "Microsoft.Web/sites"
         time_grain         = "PT1M"
         time_window        = "PT5M"  # Required field
-        statistic          = "Count"  # More accurate for connection tracking
+        statistic          = "Average" # More accurate for connection tracking
         operator           = "LessThan"
         threshold          = 50  # Scale down when connections drop below 50
         time_aggregation   = "Average"
