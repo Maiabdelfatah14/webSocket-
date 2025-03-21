@@ -187,9 +187,7 @@ resource "azurerm_subnet" "private_link_subnet" {
   resource_group_name  = azurerm_resource_group.my_rg.name
   virtual_network_name = azurerm_virtual_network.my_vnet.name
   address_prefixes     = ["10.0.1.0/24"]
-  enforce_private_link_endpoint_network_policies = true
 }
-
 
 resource "azurerm_private_endpoint" "app_service_pe" {
   name                = "app-service-private-endpoint"
