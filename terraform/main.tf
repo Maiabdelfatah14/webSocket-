@@ -160,15 +160,15 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
 
     rule {
       metric_trigger {
-        metric_name        = "HttpQueueLength"
+        metric_name        =  "Requests" 
         metric_namespace   = "Microsoft.Web/sites"
         time_grain         = "PT1M"
         time_window        = "PT5M"  # Required field
         statistic          = "Average"  
         operator           = "GreaterThan"
-        threshold          = 100  # Scale when more than 100 active connections
+        threshold          = 1000  
         time_aggregation   = "Average"
-        metric_resource_id = azurerm_linux_web_app.web_app.id
+        metric_resource_id = azurerm_service_plan.app_service_plan.id
       }
 
       scale_action {
@@ -181,15 +181,15 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
 
     rule {
       metric_trigger {
-        metric_name        = "HttpQueueLength"
+        metric_name        = "Requests" 
         metric_namespace   = "Microsoft.Web/sites"
         time_grain         = "PT1M"
         time_window        = "PT5M"  # Required field
         statistic          = "Average" # More accurate for connection tracking
         operator           = "LessThan"
-        threshold          = 50  # Scale down when connections drop below 50
+        threshold          = 400  # Scale down when connections drop below 50
         time_aggregation   = "Average"
-        metric_resource_id = azurerm_linux_web_app.web_app.id
+        metric_resource_id = azurerm_service_plan.app_service_plan.id 
       }
 
       scale_action {
@@ -197,6 +197,7 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
         type      = "ChangeCount"
         value     = 1
         cooldown  = "PT5M"  # Wait 5 minutes before scaling down
+
       }
     }
   }
