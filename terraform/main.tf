@@ -141,7 +141,7 @@ resource "azurerm_monitor_metric_alert" "downtime_alert" {
 
 #----------------------------------------auto restart/auto scaling ---------------------------------
 
-# 🔹 Auto-Scaling Based on Active Connections
+# 🔹 Auto-Scaling Based on CPU Usage (Instead of Active Connections)
 resource "azurerm_monitor_autoscale_setting" "autoscale" {
   name                = "autoscale-app-service"
   resource_group_name = azurerm_resource_group.my_rg.name
@@ -151,7 +151,6 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
   profile {
     name = "default"
 
-
     capacity {
       default = 1
       minimum = 1
@@ -160,15 +159,15 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
 
     rule {
       metric_trigger {
-        metric_name        =  "Requests" 
-        metric_namespace   = "Microsoft.Web/sites"
+        metric_name        = "CpuPercentage"  # ✅ استخدم CPU كنقطة قياس
+        metric_namespace   = "Microsoft.Web/serverFarms"  # ✅ التصحيح هنا
         time_grain         = "PT1M"
-        time_window        = "PT5M"  # Required field
-        statistic          = "Average"  
+        time_window        = "PT5M"
+        statistic          = "Average"
         operator           = "GreaterThan"
-        threshold          = 1000  
+        threshold          = 70  # ✅ إذا تجاوزت نسبة CPU 70%، أضف إنستنس جديد
         time_aggregation   = "Average"
-        metric_resource_id = azurerm_service_plan.app_service_plan.id
+        metric_resource_id = azurerm_service_plan.app_service_plan.id  # ✅ تأكد من استهداف Service Plan
       }
 
       scale_action {
@@ -181,15 +180,15 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
 
     rule {
       metric_trigger {
-        metric_name        = "Requests" 
-        metric_namespace   = "Microsoft.Web/sites"
+        metric_name        = "CpuPercentage"  
+        metric_namespace   = "Microsoft.Web/serverFarms"  # ✅ التصحيح هنا
         time_grain         = "PT1M"
-        time_window        = "PT5M"  # Required field
-        statistic          = "Average" # More accurate for connection tracking
+        time_window        = "PT5M"
+        statistic          = "Average"
         operator           = "LessThan"
-        threshold          = 400  # Scale down when connections drop below 50
+        threshold          = 40  # ✅ إذا انخفضت نسبة CPU عن 40%، قم بتخفيض العدد
         time_aggregation   = "Average"
-        metric_resource_id = azurerm_service_plan.app_service_plan.id 
+        metric_resource_id = azurerm_service_plan.app_service_plan.id  # ✅ تأكد من استهداف Service Plan
       }
 
       scale_action {
@@ -197,7 +196,6 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
         type      = "ChangeCount"
         value     = 1
         cooldown  = "PT5M"  # Wait 5 minutes before scaling down
-
       }
     }
   }
