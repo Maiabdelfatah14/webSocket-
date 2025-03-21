@@ -91,19 +91,24 @@ resource "azurerm_monitor_metric_alert" "latency_alert" {
 # 🔹 WebSocket Failures Alert
 resource "azurerm_monitor_metric_alert" "websocket_failure_alert" {
   name                = "websocket-failure-alert"
-  resource_group_name = azurerm_resource_group.my_rg.name
-  scopes             = [azurerm_linux_web_app.web_app.id]
-  description        = "Alert on WebSocket failure spikes"
-  severity           = 3
-
+  resource_group_name = azurerm_resource_group.main.name
+  scopes              = [azurerm_linux_web_app.web_app.id]
+  description         = "Monitor HTTP 5xx errors"
+  severity            = 2 
+  
   criteria {
     metric_namespace = "Microsoft.Web/sites"
-    metric_name      = "WebSocketRequestsFailed"
-    aggregation      = "Total"
-    operator         = "GreaterThan"
-    threshold        = 5  # Alert if more than 5 WebSocket failures occur
+    metric_name      = "Http5xx"  # استبدال WebSocketRequestsFailed بـ Http5xx
+    aggregation      = "Sum" 
+    operator         = "GreaterThanOrEqual"
+    threshold        = 10 
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.alert_action.id
   }
 }
+
 
 # 🔹 Downtime Alert
 resource "azurerm_monitor_metric_alert" "downtime_alert" {
@@ -116,11 +121,12 @@ resource "azurerm_monitor_metric_alert" "downtime_alert" {
   criteria {
     metric_namespace = "Microsoft.Web/sites"
     metric_name      = "Http5xx"
-    aggregation      = "Total"
+    aggregation      = "Sum"  # ✅ استخدم Sum بدلاً من Total
     operator         = "GreaterThan"
     threshold        = 1
   }
 }
+
 
 #----------------------------------------auto restart/auto scaling ---------------------------------
 
