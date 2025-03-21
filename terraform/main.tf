@@ -32,31 +32,30 @@ resource "azurerm_service_plan" "app_service_plan" {
   sku_name            = "B1"
 }
 
-# 🔹 App Service with Container Deployment
-resource "azurerm_linux_web_app" "web_app" {
-  name                = var.app_service_name
-  resource_group_name = azurerm_resource_group.my_rg.name
-  location            = azurerm_resource_group.my_rg.location
-  service_plan_id     = azurerm_service_plan.app_service_plan.id 
-
- identity {
-    type = "SystemAssigned"  # ⬅️ تمكين Managed Identity
-  }
-
-  site_config {
-    always_on = true  
-
-    application_stack {
-      docker_image     = "${azurerm_container_registry.my_acr.login_server}/my-app"
-      docker_image_tag = "latest"
-    }
-  }
-
-  app_settings = {
-    "WEBSOCKET_ENABLED" = "true"
-  }
-}
-
+# 🔹 Create Web App
+ resource "azurerm_linux_web_app" "web_app" {
+   name                = "my-fastapi-websocket-app"
+   resource_group_name = azurerm_resource_group.my_rg.name
+   location            = azurerm_resource_group.my_rg.location
+   service_plan_id     = azurerm_service_plan.app_service_plan.id
+ 
+   site_config {
+     application_stack {
+       docker_image_name = "${azurerm_container_registry.my_acr.login_server}/fastapi-websocket:latest"
+     }
+   }
+ 
+   identity {
+     type = "SystemAssigned"
+   }
+ 
+   app_settings = {
+     WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
+   }
+ }
+ 
+ 
+  
 
 
 
