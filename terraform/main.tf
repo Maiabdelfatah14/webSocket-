@@ -39,11 +39,12 @@ resource "azurerm_linux_web_app" "web_app" {
   service_plan_id     = azurerm_service_plan.app_service_plan.id 
 
  site_config {
+     always_on         = true  # Keeps the app running
      application_stack {
        docker_image_name = "${azurerm_container_registry.my_acr.login_server}/fastapi-websocket:latest"
-       always_on         = true  # Keeps the app running
      }
    }
+
 
 
   app_settings = {
@@ -215,6 +216,13 @@ resource "azurerm_network_security_rule" "deny_all" {
   destination_port_range      = "*"
   resource_group_name         = azurerm_resource_group.my_rg.name
   network_security_group_name = azurerm_network_security_group.websocket_nsg.name
+}
+
+resource "azurerm_subnet" "private_subnet" {
+  name                 = "private-subnet"
+  resource_group_name  = azurerm_resource_group.my_rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 # 🔹 Associate NSG with Subnet
