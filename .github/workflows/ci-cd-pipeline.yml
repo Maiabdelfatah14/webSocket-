@@ -35,10 +35,31 @@ jobs:
         working-directory: terraform
         run: terraform init
 
+
+      - name: Import Existing Resources
+        working-directory: terraform
+        run: |
+          # Import Resource Group
+          terraform import azurerm_resource_group.my_rg /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR || echo "Resource Group already imported"
+
+          # Import Azure Container Registry
+          terraform import azurerm_container_registry.my_acr /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.ContainerRegistry/registries/myacrTR202 || echo "ACR already imported"
+
+          # Import App Service Plan
+          terraform import azurerm_service_plan.app_service_plan /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.Web/serverFarms/myAppServicePlan || echo "App Service Plan already imported"
+
+          # Import Virtual Network
+          terraform import azurerm_virtual_network.vnet /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.Network/virtualNetworks/myVNet || echo "VNet already imported"
+     
       - name: Terraform Apply
         working-directory: terraform
         run: terraform apply -auto-approve -var "Subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
+      - name: Terraform Destroy
+        working-directory: terraform
+        run: terraform destroy -auto-approve -var "Subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+
+        
 
   secrets-management:
     runs-on: ubuntu-latest
