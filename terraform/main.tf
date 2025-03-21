@@ -41,6 +41,7 @@ resource "azurerm_app_service" "web_app" {
  site_config {
      application_stack {
        docker_image_name = "${azurerm_container_registry.my_acr.login_server}/fastapi-websocket:latest"
+       always_on         = true  # Keeps the app running
      }
    }
  
@@ -51,10 +52,7 @@ resource "azurerm_app_service" "web_app" {
     "DOCKER_REGISTRY_SERVER_PASSWORD" = azurerm_container_registry.my_acr.admin_password
   }
 }
-
-
-
-
+ 
 
 
 #------------------------------------------------ azure montor / alerts ---------------------------
@@ -66,22 +64,7 @@ resource "azurerm_application_insights" "app_insights" {
   application_type    = "web"
 }
 
-# 🔹 Link Application Insights to the Web App
-resource "azurerm_app_service" "web_app" {
-  name                = "my-fastapi-websocket-app"
-  resource_group_name = azurerm_resource_group.my_rg.name
-  location            = azurerm_resource_group.my_rg.location
-  app_service_plan_id = azurerm_service_plan.app_service_plan.id
 
-  site_config {
-    linux_fx_version = "DOCKER|myacrTR202.azurecr.io/fastapi-websocket:latest"
-  }
-
-  app_settings = {
-    "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_application_insights.app_insights.instrumentation_key
-    "APPLICATIONINSIGHTS_CONNECTION_STRING" = azurerm_application_insights.app_insights.connection_string
-  }
-}
 
 # 🔹 Latency Alert (If response time > 2s)
 resource "azurerm_monitor_metric_alert" "latency_alert" {
@@ -135,23 +118,6 @@ resource "azurerm_monitor_metric_alert" "downtime_alert" {
 }
 
 #----------------------------------------auto restart/auto scaling ---------------------------------
-
-# 🔹 Configure Auto-Restart on Failure
-resource "azurerm_app_service" "web_app" {
-  name                = "my-fastapi-websocket-app"
-  resource_group_name = azurerm_resource_group.my_rg.name
-  location            = azurerm_resource_group.my_rg.location
-  app_service_plan_id = azurerm_service_plan.app_service_plan.id
-
-  site_config {
-    linux_fx_version = "DOCKER|myacrTR202.azurecr.io/fastapi-websocket:latest"
-    always_on        = true  # Keeps the app running
-  }
-
-  app_settings = {
-    "WEBSITES_CONTAINER_START_TIME_LIMIT" = "180"  # Restart container if it fails
-  }
-}
 
 # 🔹 Auto-Scaling Based on Active Connections
 resource "azurerm_monitor_autoscale_setting" "autoscale" {
