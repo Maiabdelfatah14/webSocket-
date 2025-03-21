@@ -32,7 +32,7 @@ resource "azurerm_service_plan" "app_service_plan" {
 }
 
 # 🔹 App Service with Container Deployment
-resource "azurerm_app_service" "web_app" {
+resource "azurerm_linux_web_app" "web_app" {
   name                = var.app_service_name
   resource_group_name = azurerm_resource_group.my_rg.name
   location            = azurerm_resource_group.my_rg.location
@@ -140,17 +140,18 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
         metric_name        = "ActiveConnections"
         metric_namespace   = "Microsoft.Web/sites"
         time_grain         = "PT1M"
-        statistic          = "Average"
+        time_window        = "PT5M"  # Required field
+        statistic          = "Count"  # More accurate for connection tracking
         operator           = "GreaterThan"
         threshold          = 100  # Scale when more than 100 active connections
         time_aggregation   = "Average"
       }
 
       scale_action {
-        direction     = "Increase"
-        type          = "ChangeCount"
-        value         = 1
-        cooldown      = "PT2M"  # Wait 2 minutes before next scaling action
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT2M"  # Wait 2 minutes before next scaling action
       }
     }
 
@@ -159,17 +160,18 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
         metric_name        = "ActiveConnections"
         metric_namespace   = "Microsoft.Web/sites"
         time_grain         = "PT1M"
-        statistic          = "Average"
+        time_window        = "PT5M"  # Required field
+        statistic          = "Count"  # More accurate for connection tracking
         operator           = "LessThan"
         threshold          = 50  # Scale down when connections drop below 50
         time_aggregation   = "Average"
       }
 
       scale_action {
-        direction     = "Decrease"
-        type          = "ChangeCount"
-        value         = 1
-        cooldown      = "PT5M"  # Wait 5 minutes before scaling down
+        direction = "Decrease"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT5M"  # Wait 5 minutes before scaling down
       }
     }
   }
