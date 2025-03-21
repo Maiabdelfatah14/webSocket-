@@ -4,62 +4,65 @@ import random
 import uvicorn
 import jwt
 import datetime
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
+from typing import Optional
 
 app = FastAPI()
 
 SECRET_KEY = "your_secret_key"
+ALGORITHM = "HS256"
 
-# دالة لإنشاء توكن JWT
+# إنشاء JWT
 def create_jwt_token(user_id: str):
     payload = {
         "sub": user_id,
         "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     }
-    token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
-    return token
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
-# دالة للتحقق من صحة التوكن
-def verify_jwt(token: str):
+# التحقق من JWT
+def verify_jwt(token: str) -> str:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload["sub"]
     except jwt.ExpiredSignatureError:
-        raise ValueError("انتهت صلاحية التوكن")
+        raise HTTPException(status_code=401, detail="Token has expired")
     except jwt.InvalidTokenError:
-        raise ValueError("توكن غير صالح")
+        raise HTTPException(status_code=401, detail="Invalid token")
 
-# ويب سوكيت للمصادقة والتحقق من التوكن
-@app.websocket("/ws/auth")
-async def websocket_auth(websocket: WebSocket):
-    await websocket.accept()
-    try:
-        token = await websocket.receive_text()  # استلام التوكن من العميل بعد الاتصال
-        user_id = verify_jwt(token)  # التحقق من التوكن
-        await websocket.send_text(f"مرحبًا {user_id}، تم التحقق من التوكن بنجاح!")
-    except ValueError as e:
-        await websocket.send_text(str(e))
-        await websocket.close(code=1008)  # 1008 = فشل المصادقة
-
-# ويب سوكيت لبث بيانات الأسهم
 connected_clients = set()
+clients_lock = asyncio.Lock()  # قفل لحماية العمليات التعاونية
 stocks = ["AAPL", "GOOGL", "AMZN", "MSFT"]
 
 @app.websocket("/ws/stocks")
 async def websocket_stocks(websocket: WebSocket):
     await websocket.accept()
-    connected_clients.add(websocket)
     
     try:
+        # استلام التوكن بعد الاتصال مباشرة
+        token = await websocket.receive_text()
+        user_id = verify_jwt(token)  # التحقق من صحة التوكن
+        
+        await websocket.send_text(f"Welcome {user_id}, you are now connected to stock updates.")
+        
+        # إضافة العميل إلى القائمة
+        async with clients_lock:
+            connected_clients.add(websocket)
+        
+        # إرسال تحديثات الأسهم بشكل مستمر
         while True:
-            if connected_clients:
-                stock_data = {stock: round(random.uniform(100, 1500), 2) for stock in stocks}
-                message = json.dumps(stock_data)
-                await asyncio.gather(*(client.send_text(message) for client in connected_clients))
+            async with clients_lock:
+                if connected_clients:
+                    stock_data = {stock: round(random.uniform(100, 1500), 2) for stock in stocks}
+                    message = json.dumps(stock_data)
+                    await asyncio.gather(*(client.send_text(message) for client in connected_clients))
             await asyncio.sleep(2)
-    except WebSocketDisconnect:
-        connected_clients.discard(websocket)
+
+    except (WebSocketDisconnect, HTTPException):
+        async with clients_lock:
+            connected_clients.discard(websocket)
+        await websocket.close(code=1008)  # إغلاق الاتصال عند حدوث خطأ أو فصل العميل
 
 # نقطة نهاية لفحص حالة الخادم
 @app.get("/")
