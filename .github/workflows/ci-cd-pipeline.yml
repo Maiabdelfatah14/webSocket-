@@ -31,11 +31,23 @@ jobs:
         with:
           terraform_version: latest
 
-      - name: Terraform init and apply
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Import Existing Resource Group
         working-directory: terraform
         run: |
-          terraform init
-          terraform apply -auto-approve -var "Subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+          if az group show --name myResourceGroupTR &>/dev/null; then
+            echo "Resource Group exists, importing into Terraform state..."
+            terraform import azurerm_resource_group.my_rg /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR || echo "Already imported"
+          else
+            echo "Resource Group does not exist, Terraform will create it."
+          fi
+
+      - name: Terraform Apply
+        working-directory: terraform
+        run: terraform apply -auto-approve -var "Subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
   secrets-management:
     runs-on: ubuntu-latest
