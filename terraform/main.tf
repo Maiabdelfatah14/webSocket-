@@ -22,6 +22,7 @@ resource "azurerm_container_registry" "my_acr" {
   }
 }
 
+
 # 🔹 App Service Plan
 resource "azurerm_service_plan" "app_service_plan" {
   name                = var.app_service_plan_name
@@ -38,18 +39,23 @@ resource "azurerm_linux_web_app" "web_app" {
   location            = azurerm_resource_group.my_rg.location
   service_plan_id     = azurerm_service_plan.app_service_plan.id 
 
-site_config {
-    always_on = true
-}
+ identity {
+    type = "SystemAssigned"  # ⬅️ تمكين Managed Identity
+  }
 
-app_settings = {
-    "DOCKER_REGISTRY_SERVER_URL"      = "https://${azurerm_container_registry.my_acr.login_server}"
-    "DOCKER_REGISTRY_SERVER_USERNAME" = azurerm_container_registry.my_acr.admin_username
-    "DOCKER_REGISTRY_SERVER_PASSWORD" = azurerm_container_registry.my_acr.admin_password
-    "DOCKER_CUSTOM_IMAGE_NAME"        = "${azurerm_container_registry.my_acr.login_server}/my-app:latest"
-    "WEBSOCKET_ENABLED"               = "true"
+
+ site_config {
+    always_on        = true  
+    linux_fx_version = "DOCKER|${azurerm_container_registry.my_acr.login_server}/my-app:latest"
+  }
+
+  app_settings = {
+    "WEBSOCKET_ENABLED" = "true"
   }
 }
+
+ 
+
 
 #------------------------------------------------ azure montor / alerts ---------------------------
 # 🔹 Application Insights for Monitoring
