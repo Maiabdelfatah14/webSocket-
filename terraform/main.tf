@@ -7,6 +7,10 @@ provider "azurerm" {
 resource "azurerm_resource_group" "my_rg" {
   name     = "myResourceGroupTR"
   location = "East US"
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # 🔹 Create ACR
@@ -22,6 +26,7 @@ resource "azurerm_container_registry" "my_acr" {
 
   lifecycle {
     create_before_destroy = true
+    ignore_changes        = [tags]
   }
 }
 
@@ -32,6 +37,10 @@ resource "azurerm_service_plan" "app_service_plan" {
   location            = azurerm_resource_group.my_rg.location
   os_type             = "Linux"
   sku_name            = "B1"
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # 🔹 Create Web App
@@ -53,6 +62,10 @@ resource "azurerm_linux_web_app" "web_app" {
 
   app_settings = {
     WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
+  }
+
+  lifecycle {
+    ignore_changes = [app_settings, site_config]
   }
 }
 
@@ -84,5 +97,9 @@ resource "azurerm_private_endpoint" "acr_private_endpoint" {
     private_connection_resource_id = azurerm_container_registry.my_acr.id
     subresource_names              = ["registry"]
     is_manual_connection           = false
+  }
+
+  lifecycle {
+    ignore_changes = [tags]
   }
 }
