@@ -48,8 +48,8 @@ app_settings = {
     "DOCKER_REGISTRY_SERVER_PASSWORD" = azurerm_container_registry.my_acr.admin_password
     "DOCKER_CUSTOM_IMAGE_NAME"        = "${azurerm_container_registry.my_acr.login_server}/my-app:latest"
     "WEBSOCKET_ENABLED"               = "true"
+  }
 }
-
 
 #------------------------------------------------ azure montor / alerts ---------------------------
 # 🔹 Application Insights for Monitoring
