@@ -151,6 +151,7 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
   profile {
     name = "default"
 
+
     capacity {
       default = 1
       minimum = 1
@@ -159,7 +160,7 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
 
     rule {
       metric_trigger {
-        metric_name        = "ActiveConnections"
+        metric_name        = "HttpQueueLength"
         metric_namespace   = "Microsoft.Web/sites"
         time_grain         = "PT1M"
         time_window        = "PT5M"  # Required field
@@ -180,7 +181,7 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
 
     rule {
       metric_trigger {
-        metric_name        = "ActiveConnections"
+        metric_name        = "HttpQueueLength"
         metric_namespace   = "Microsoft.Web/sites"
         time_grain         = "PT1M"
         time_window        = "PT5M"  # Required field
@@ -200,7 +201,6 @@ resource "azurerm_monitor_autoscale_setting" "autoscale" {
     }
   }
 }
-
 
 #---------------------------------------------------  NSGs to secure -------------------------------
 resource "azurerm_virtual_network" "my_vnet" {
