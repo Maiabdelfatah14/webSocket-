@@ -1,6 +1,6 @@
 provider "azurerm" {
   features {}
-  subscription_id = var.Subscription_id
+  Subscription_id = var.Subscription_id
 }
 
 #-------------------------------------- Terraform to provision App Service & ACR ----------------------------
