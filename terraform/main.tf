@@ -43,10 +43,13 @@ resource "azurerm_linux_web_app" "web_app" {
     type = "SystemAssigned"  # ⬅️ تمكين Managed Identity
   }
 
+  site_config {
+    always_on = true  
 
- site_config {
-    always_on        = true  
-    linux_fx_version = "DOCKER|${azurerm_container_registry.my_acr.login_server}/my-app:latest"
+    application_stack {
+      docker_image     = "${azurerm_container_registry.my_acr.login_server}/my-app"
+      docker_image_tag = "latest"
+    }
   }
 
   app_settings = {
@@ -54,7 +57,7 @@ resource "azurerm_linux_web_app" "web_app" {
   }
 }
 
- 
+
 
 
 #------------------------------------------------ azure montor / alerts ---------------------------
