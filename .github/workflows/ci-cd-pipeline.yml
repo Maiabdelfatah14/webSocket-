@@ -293,9 +293,9 @@ jobs:
                   - name: Restart App Service
                     run: az webapp restart --name my-fastapi-websocket-app --resource-group myResourceGroupTR
             
-                  - name: Enable Health Check
-                    run: |
-                      az webapp config set --resource-group myResourceGroupTR --name my-fastapi-websocket-app --generic-configurations "{'healthCheckPath':'/'}"
+                  # - name: Enable Health Check
+                  #   run: |
+                  #     az webapp config set --resource-group myResourceGroupTR --name my-fastapi-websocket-app --generic-configurations "{'healthCheckPath':'/'}"
             
                   - name: Enable Auto-Restart on Failure
                     run: |
