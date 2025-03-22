@@ -262,51 +262,62 @@ jobs:
                       client-id: ${{ secrets.AZURE_CLIENT_ID }}
                       tenant-id: ${{ secrets.AZURE_TENANT_ID }}
                       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          
+
+
+                  - name: Retrieve and Display Stored Secrets
+                    run: |
+                      echo "🔹 Retrieving stored secrets..."
+                  
+                      ACR_USERNAME=$(az keyvault secret show --vault-name KeyVaultSC23 --name ACR-USERNAME --query value -o tsv)
+                      ACR_PASSWORD=$(az keyvault secret show --vault-name KeyVaultSC23 --name ACR-PASSWORD --query value -o tsv)
+                  
+                      echo "🔹 Stored Secrets:"
+                      echo "ACR-USERNAME: ${ACR_USERNAME:0:5}***"  
+                      echo "ACR-PASSWORD: ${ACR_PASSWORD:0:15}***"  
       
       #---------------------------------------------------------------- trivy  befor deployment -----------------------------------------
-                  - name: Run Trivy Scan (Allow Failures)
-                    run: |
-                      docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-                        aquasec/trivy image --exit-code 0 --severity HIGH,CRITICAL \
-                        myacrTR202.azurecr.io/fastapi-websocket:latest | tee trivy-report.txt
+          #         - name: Run Trivy Scan (Allow Failures)
+          #           run: |
+          #             docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+          #               aquasec/trivy image --exit-code 0 --severity HIGH,CRITICAL \
+          #               myacrTR202.azurecr.io/fastapi-websocket:latest | tee trivy-report.txt
             
-                  - name: Upload Trivy Scan Report
-                    uses: actions/upload-artifact@v4
-                    with:
-                      name: trivy-scan-report
-                      path: trivy-report.txt
+          #         - name: Upload Trivy Scan Report
+          #           uses: actions/upload-artifact@v4
+          #           with:
+          #             name: trivy-scan-report
+          #             path: trivy-report.txt
           
-          #----------------------------------------------------------------------------- deploy ---------------------------------------------
+          # #----------------------------------------------------------------------------- deploy ---------------------------------------------
 
-                  - name: Log in to ACR using Docker
-                    run: |
-                        ACR_PASSWORD=$(az acr credential show --name ${{ env.ACR_USERNAME }} --query "passwords[0].value" -o tsv)
-                        echo $ACR_PASSWORD | docker login myacrTR202.azurecr.io -u ${{ env.ACR_USERNAME }} --password-stdin
+          #         - name: Log in to ACR using Docker
+          #           run: |
+          #               ACR_PASSWORD=$(az acr credential show --name ${{ env.ACR_USERNAME }} --query "passwords[0].value" -o tsv)
+          #               echo $ACR_PASSWORD | docker login myacrTR202.azurecr.io -u ${{ env.ACR_USERNAME }} --password-stdin
                   
-                  - name: Deploy Web App on Azure App Service
-                    run: |
-                      az webapp config container set \
-                        --name my-fastapi-websocket-app \
-                        --resource-group myResourceGroupTR \
-                        --container-image-name myacrTR202.azurecr.io/fastapi-websocket:latest \
-                        --container-registry-url https://myacrTR202.azurecr.io \
-                        --container-registry-username ${{ env.ACR_USERNAME }} \
-                        --container-registry-password ${{ env.ACR_PASSWORD }}
+          #         - name: Deploy Web App on Azure App Service
+          #           run: |
+          #             az webapp config container set \
+          #               --name my-fastapi-websocket-app \
+          #               --resource-group myResourceGroupTR \
+          #               --container-image-name myacrTR202.azurecr.io/fastapi-websocket:latest \
+          #               --container-registry-url https://myacrTR202.azurecr.io \
+          #               --container-registry-username ${{ env.ACR_USERNAME }} \
+          #               --container-registry-password ${{ env.ACR_PASSWORD }}
     
 
-                  - name: Restart App Service
-                    run: az webapp restart --name my-fastapi-websocket-app --resource-group myResourceGroupTR
+          #         - name: Restart App Service
+          #           run: az webapp restart --name my-fastapi-websocket-app --resource-group myResourceGroupTR
             
-                  # - name: Enable Health Check
-                  #   run: |
-                  #     az webapp config set --resource-group myResourceGroupTR --name my-fastapi-websocket-app --generic-configurations "{'healthCheckPath':'/'}"
+          #         # - name: Enable Health Check
+          #         #   run: |
+          #         #     az webapp config set --resource-group myResourceGroupTR --name my-fastapi-websocket-app --generic-configurations "{'healthCheckPath':'/'}"
             
-                  - name: Enable Auto-Restart on Failure
-                    run: |
-                      az webapp config set --resource-group myResourceGroupTR --name my-fastapi-websocket-app --always-on true
+          #         - name: Enable Auto-Restart on Failure
+          #           run: |
+          #             az webapp config set --resource-group myResourceGroupTR --name my-fastapi-websocket-app --always-on true
             
-                  - name: Configure Auto-Scaling
-                    run: |
-                      az appservice plan update --name myAppServicePlan --resource-group myResourceGroupTR --sku S1
+          #         - name: Configure Auto-Scaling
+          #           run: |
+          #             az appservice plan update --name myAppServicePlan --resource-group myResourceGroupTR --sku S1
             
