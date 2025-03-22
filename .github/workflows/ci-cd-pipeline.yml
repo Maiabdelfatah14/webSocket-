@@ -180,17 +180,17 @@ jobs:
               env:
                   ACR_USERNAME: ${{ env.ACR_USERNAME }}
 
-            - name: تعيين دور AcrPush إلى Service Principal
+
+
+            - name: Assign Azure Roles
               run: |
-                    az role assignment create --assignee ${{ secrets.AZURE_CLIENT_ID }} \
-                      --role "AcrPush" \
-                      --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.ContainerRegistry/registries/myacrTR202
-
-
-            - name: Assign ACR Push Role
-              run: az role assignment create --assignee $CLIENT_ID --role "AcrPush" --scope /subscriptions/2204702f-2344-4ad7-acc5-63b9daea47de/resourceGroups/myResourceGroupTR/providers/Microsoft.ContainerRegistry/registries/myacrTR202
-
-
+                az role assignment create --assignee ${{ secrets.AZURE_CLIENT_ID }} \
+                  --role "User Access Administrator" \
+                  --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}
+                
+                az role assignment create --assignee ${{ secrets.AZURE_CLIENT_ID }} \
+                  --role "AcrPush" \
+                  --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.ContainerRegistry/registries/myacrTR202
 
             - name: Build and push Docker image to ACR
               run: |
