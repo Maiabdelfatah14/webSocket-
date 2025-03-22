@@ -126,13 +126,18 @@ jobs:
             echo "⚠️ ACR-PASSWORD already exists."
           fi
       
-      - name: Show stored secrets
+      - name: Retrieve secrets and store in env
         run: |
           echo "🔹 Retrieving stored secrets..."
-          echo "ACR-USERNAME: $(az keyvault secret show --vault-name KeyVaultSC23 --name ACR-USERNAME --query value -o tsv)"
-          echo "ACR-PASSWORD: $(az keyvault secret show --vault-name KeyVaultSC23 --name ACR-PASSWORD --query value -o tsv)"
+          echo "ACR_USERNAME=$(az keyvault secret show --vault-name KeyVaultSC23 --name ACR-USERNAME --query value -o tsv)" >> $GITHUB_ENV
+          echo "ACR_PASSWORD=$(az keyvault secret show --vault-name KeyVaultSC23 --name ACR-PASSWORD --query value -o tsv)" >> $GITHUB_ENV
       
-      
+      - name: Show stored secrets
+        run: |
+          echo "🔹 Stored Secrets:"
+          echo "ACR-USERNAME: $ACR_USERNAME"
+          echo "ACR-PASSWORD: $ACR_PASSWORD"
+
 
 
 
