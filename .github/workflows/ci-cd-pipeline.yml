@@ -273,8 +273,8 @@ jobs:
                   
                       echo "🔹 Stored Secrets:"
                       echo "ACR-USERNAME: ${ACR_USERNAME:0:10}***"  
-                      echo "ACR-PASSWORD: ${ACR_PASSWORD:0::}"  
-                      echo "$ACR_PASSWORD"
+                      echo "ACR-PASSWORD: ${ACR_PASSWORD:0:100}"  
+                      
 
       
       #---------------------------------------------------------------- trivy  befor deployment -----------------------------------------
