@@ -1,69 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 Live Stock Data</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
-        }
-        table {
-            width: 50%;
-            margin: auto;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-        }
-        th {
-            background-color: #4CAF50;
-            color: white;
-        }
-    </style>
-</head>
-<body>
-
-    <h2>📊 Live Stock Data from WebSocket</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Stock</th>
-                <th>Price ($)</th>
-            </tr>
-        </thead>
-        <tbody id="stockTable">
-            <!-- Data will be inserted here -->
-        </tbody>
-    </table>
-
-    <script>
-        const ws = new WebSocket("wss://your-app-name.azurewebsites.net/ws"); // Change this for Azure
-
-        ws.onmessage = function(event) {
-            const stockData = JSON.parse(event.data);
-            const tableBody = document.getElementById("stockTable");
-            tableBody.innerHTML = ""; // Clear table before updating
-
-            Object.keys(stockData).forEach(stock => {
-                const row = document.createElement("tr");
-                row.innerHTML = `<td>${stock}</td><td>${stockData[stock]}</td>`;
-                tableBody.appendChild(row);
-            });
-        };
-
-        ws.onclose = function() {
-            console.log("WebSocket connection closed");
-        };
-
-        ws.onerror = function(error) {
-            console.error("WebSocket Error:", error);
-        };
-    </script>
-
-</body>
-</html>
+ <html lang="ar">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>WebSocket Test</title>
+ </head>
+ <body>
+     <h2>📊 بيانات الأسهم من WebSocket</h2>
+     <pre id="output"></pre>
+ 
+     <script>
+         // إنشاء اتصال WebSocket مع السيرفر
+         const socket = new WebSocket("wss://my-fastapi-websocket-app.azurewebsites.net/ws");
+ 
+         // عند فتح الاتصال
+         socket.onopen = function () {
+             console.log("✅ WebSocket Connected!");
+         };
+ 
+         // عند استقبال بيانات جديدة
+         socket.onmessage = function (event) {
+             document.getElementById("output").textContent = event.data;
+         };
+ 
+         // عند حدوث خطأ
+         socket.onerror = function (error) {
+             console.log("❌ WebSocket Error:", error);
+         };
+ 
+         // عند إغلاق الاتصال
+         socket.onclose = function () {
+             console.log("⚠️ WebSocket Disconnected.");
+         };
+     </script>
+ </body>
+ </html>
