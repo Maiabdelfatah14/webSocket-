@@ -232,11 +232,11 @@ jobs:
 
             # 🔹 إعادة وسم (Tag) الصورة لـ ACR
             - name: Tag image for ACR
-              run: docker tag maiabdelfata7/fastapi-websocket:latest myacrTR202.azurecr.io/fastapi-websocket:v1
+              run: docker tag maiabdelfata7/fastapi-websocket:latest myacrTR202.azurecr.io/fastapi-websocket:latest
 
             # 🔹 دفع الصورة إلى ACR
             - name: Push Docker image to ACR
-              run: docker push myacrTR202.azurecr.io/fastapi-websocket:v1
+              run: docker push myacrTR202.azurecr.io/fastapi-websocket:latest
 
         
             - name: Run Trivy vulnerability scanner
