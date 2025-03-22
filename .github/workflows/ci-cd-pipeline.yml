@@ -175,8 +175,11 @@ jobs:
                 echo "ACR_USERNAME=$ACR_USERNAME" >> $GITHUB_ENV
                 echo "ACR_PASSWORD=$ACR_PASSWORD" >> $GITHUB_ENV
         
-            - name: Log in to ACR
-              run: echo ${{ env.ACR_PASSWORD }} | docker login myacrTR202.azurecr.io -u ${{ env.ACR_USERNAME }} --password-stdin
+            - name: Log in to ACR using Azure CLI
+              run: az acr login --name $ACR_USERNAME
+              env:
+                  ACR_USERNAME: ${{ env.ACR_USERNAME }}
+
         
             - name: Build and push Docker image to ACR
               run: |
