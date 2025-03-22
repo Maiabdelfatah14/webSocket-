@@ -1,10 +1,10 @@
 import asyncio
- import json
- import random
- import uvicorn
- from fastapi import FastAPI, WebSocket, WebSocketDisconnect
- from fastapi.staticfiles import StaticFiles
- from fastapi import FastAPI, HTTPException
+import json
+import random
+import uvicorn
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, HTTPException
  
  
  app = FastAPI()
