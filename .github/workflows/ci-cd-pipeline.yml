@@ -286,8 +286,8 @@ jobs:
                         --resource-group myResourceGroupTR \
                         --docker-custom-image-name myacrTR202.azurecr.io/fastapi-websocket:latest \
                         --docker-registry-server-url https://myacrTR202.azurecr.io 
-                       # --docker-registry-server-user ${{ env.ACR_USERNAME }} \
-                        #--docker-registry-server-password ${{ env.ACR_PASSWORD }}
+                         --docker-registry-server-user ${{ env.ACR_USERNAME }} \
+                         --docker-registry-server-password ${{ env.ACR_PASSWORD }}
     
     
                   - name: Restart App Service
