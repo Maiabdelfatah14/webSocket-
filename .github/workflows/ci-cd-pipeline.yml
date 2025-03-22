@@ -214,9 +214,9 @@ jobs:
                    docker build -t maiabdelfata7/fastapi-websocket .
                    docker push maiabdelfata7/fastapi-websocket
                    
-            # 🔹 سحب الصورة من DockerHub
-            - name: Pull Docker image from DockerHub
-              run: docker pull maiabdelfata7/fastapi-websocket:latest
+            # # 🔹 سحب الصورة من DockerHub
+            # - name: Pull Docker image from DockerHub
+            #   run: docker pull maiabdelfata7/fastapi-websocket:latest
 
  
             - name: Log in to ACR using Docker
@@ -224,19 +224,19 @@ jobs:
                   ACR_PASSWORD=$(az acr credential show --name ${{ env.ACR_USERNAME }} --query "passwords[0].value" -o tsv)
                   echo $ACR_PASSWORD | docker login myacrTR202.azurecr.io -u ${{ env.ACR_USERNAME }} --password-stdin
  
-           # # 🔹 Build and push Docker image to ACR
-           #  - name: Build and push Docker image to ACR
-           #    run: |
-           #       docker build -t myacrTR202.azurecr.io/fastapi-websocket:latest .
-           #       docker push myacrTR202.azurecr.io/fastapi-websocket:latest
+           # 🔹 Build and push Docker image to ACR
+            - name: Build and push Docker image to ACR
+              run: |
+                 docker build -t myacrTR202.azurecr.io/fastapi-websocket:latest .
+                 docker push myacrTR202.azurecr.io/fastapi-websocket:latest
 
-            # 🔹 إعادة وسم (Tag) الصورة لـ ACR
-            - name: Tag image for ACR
-              run: docker tag maiabdelfata7/fastapi-websocket:latest myacrTR202.azurecr.io/fastapi-websocket:latest
+            # # 🔹 إعادة وسم (Tag) الصورة لـ ACR
+            # - name: Tag image for ACR
+            #   run: docker tag maiabdelfata7/fastapi-websocket:latest myacrTR202.azurecr.io/fastapi-websocket:latest
 
-            # 🔹 دفع الصورة إلى ACR
-            - name: Push Docker image to ACR
-              run: docker push myacrTR202.azurecr.io/fastapi-websocket:latest
+            # # 🔹 دفع الصورة إلى ACR
+            # - name: Push Docker image to ACR
+            #   run: docker push myacrTR202.azurecr.io/fastapi-websocket:latest
 
         
             - name: Run Trivy vulnerability scanner
