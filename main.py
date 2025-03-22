@@ -64,10 +64,10 @@ async def websocket_stocks(websocket: WebSocket):
             connected_clients.discard(websocket)
         await websocket.close(code=1008)  # إغلاق الاتصال عند حدوث خطأ أو فصل العميل
 
-# نقطة نهاية لفحص حالة الخادم
-@app.get("/")
-async def health_check():
-    return {"status": "healthy"}
+# # نقطة نهاية لفحص حالة الخادم
+# @app.get("/")
+# async def health_check():
+#     return {"status": "healthy"}
 
 # نقطة نهاية لاختبار تعطل الخادم
 @app.get("/crash")
