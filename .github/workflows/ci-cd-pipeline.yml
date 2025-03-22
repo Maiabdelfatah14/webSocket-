@@ -193,8 +193,19 @@ jobs:
                   --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.ContainerRegistry/registries/myacrTR202
 
 
+            - name: Azure Login
+              uses: azure/login@v1
+              with:
+                client-id: ${{ secrets.AZURE_CLIENT_ID }}
+                tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+                subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+
             - name: Log in to ACR using Docker
-              run: echo $ACR_PASSWORD | docker login ${{ env.ACR_USERNAME }}.azurecr.io -u ${{ env.ACR_USERNAME }} --password-stdin
+              run: |
+                  ACR_PASSWORD=$(az acr credential show --name ${{ env.ACR_USERNAME }} --query "passwords[0].value" -o tsv)
+                  echo $ACR_PASSWORD | docker login myacrTR202.azurecr.io -u ${{ env.ACR_USERNAME }} --password-stdin
+
         
             - name: Build and push Docker image to ACR
               run: |
