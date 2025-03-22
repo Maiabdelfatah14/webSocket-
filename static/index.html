@@ -42,39 +42,28 @@
     </table>
 
     <script>
-        const token = "your_generated_jwt_token";  // استبدل التوكن الحقيقي هنا
-        const wsUrl = `wss://your-app.com/ws?token=${token}`;
-        const socket = new WebSocket(wsUrl);
+        const ws = new WebSocket("wss://your-app-name.azurewebsites.net/ws"); // Change this for Azure
 
-        socket.onopen = () => {
-            console.log("✅ تم الاتصال بنجاح مع WebSocket");
+        ws.onmessage = function(event) {
+            const stockData = JSON.parse(event.data);
+            const tableBody = document.getElementById("stockTable");
+            tableBody.innerHTML = ""; // Clear table before updating
+
+            Object.keys(stockData).forEach(stock => {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td>${stock}</td><td>${stockData[stock]}</td>`;
+                tableBody.appendChild(row);
+            });
         };
 
-        socket.onmessage = (event) => {
-            try {
-                const stockData = JSON.parse(event.data);
-                const tableBody = document.getElementById("stockTable");
-                tableBody.innerHTML = ""; // تفريغ الجدول قبل التحديث
-
-                Object.keys(stockData).forEach(stock => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `<td>${stock}</td><td>${stockData[stock]}</td>`;
-                    tableBody.appendChild(row);
-                });
-            } catch (error) {
-                console.error("❌ خطأ في تحليل البيانات:", error);
-            }
+        ws.onclose = function() {
+            console.log("WebSocket connection closed");
         };
 
-        socket.onerror = (error) => {
-            console.error("❌ خطأ في WebSocket:", error);
-        };
-
-        socket.onclose = () => {
-            console.log("🔌 تم إغلاق الاتصال بـ WebSocket");
+        ws.onerror = function(error) {
+            console.error("WebSocket Error:", error);
         };
     </script>
 
 </body>
 </html>
-
