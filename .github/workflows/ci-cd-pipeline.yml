@@ -180,7 +180,12 @@ jobs:
               env:
                   ACR_USERNAME: ${{ env.ACR_USERNAME }}
 
-        
+            - name: تعيين دور AcrPush إلى Service Principal
+              run: |
+                    az role assignment create --assignee ${{ secrets.AZURE_CLIENT_ID }} \
+                      --role "AcrPush" \
+                      --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.ContainerRegistry/registries/myacrTR202
+
             - name: Build and push Docker image to ACR
               run: |
                 docker build -t myacrTR202.azurecr.io/fastapi-websocket:latest .
