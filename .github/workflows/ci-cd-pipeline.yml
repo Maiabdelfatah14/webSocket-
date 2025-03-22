@@ -192,10 +192,14 @@ jobs:
                   --role "AcrPush" \
                   --scope /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/myResourceGroupTR/providers/Microsoft.ContainerRegistry/registries/myacrTR202
 
+
+            - name: Log in to ACR using Docker
+              run: echo $ACR_PASSWORD | docker login ${{ env.ACR_USERNAME }}.azurecr.io -u ${{ env.ACR_USERNAME }} --password-stdin
+        
             - name: Build and push Docker image to ACR
               run: |
-                docker build -t myacrTR202.azurecr.io/fastapi-websocket:latest .
-                docker push myacrTR202.azurecr.io/fastapi-websocket:latest
+                docker build -t ${{ env.ACR_USERNAME }}.azurecr.io/fastapi-websocket:latest .
+                docker push ${{ env.ACR_USERNAME }}.azurecr.io/fastapi-websocket:latest
         
             - name: Run Trivy vulnerability scanner
               uses: aquasecurity/trivy-action@master
